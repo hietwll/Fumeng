@@ -5,7 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -95,9 +94,9 @@ void Image::load_from_file(const std::string& filename)
 	for (size_t j = 0; j < height_; j++)
 		for (size_t i = 0; i < width_; i++)
 		{
-			data_[j * width_ + i].x = raw_data[idx++] / 255.0;
-			data_[j * width_ + i].y = raw_data[idx++] / 255.0;
-			data_[j * width_ + i].z = raw_data[idx++] / 255.0;
+			data_[j * width_ + i].x = static_cast<real> (raw_data[idx++] / 255.0);
+			data_[j * width_ + i].y = static_cast<real> (raw_data[idx++] / 255.0);
+			data_[j * width_ + i].z = static_cast<real> (raw_data[idx++] / 255.0);
 		}
 }
 

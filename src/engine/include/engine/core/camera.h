@@ -9,7 +9,7 @@ class Camera
 {
 public:
     virtual ~Camera() = default;
-    virtual Ray GetRandomRay()
+    virtual Ray SampleRay(const vec2& ndc_pos) const = 0;
 };
 
 FM_ENGINE_END
