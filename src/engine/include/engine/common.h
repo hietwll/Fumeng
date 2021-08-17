@@ -22,6 +22,9 @@ using dreal = double;
 
 constexpr real REAL_MAX = std::numeric_limits<real>::max();
 
+const real PI = 3.14159265354;
+const real InvPI = 1.0 / PI;
+
 // forward declaration
 class Ray;
 class Scene;
@@ -29,6 +32,7 @@ class Sampler;
 class Camera;
 class Transform;
 class HitPoint;
+class BSDF;
 
 // share pointers
 template<typename T>

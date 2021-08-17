@@ -1,5 +1,5 @@
-#ifndef FM_ENGINE_SCENE_H
-#define FM_ENGINE_SCENE_H
+#ifndef FM_ENGINE_TRANSFORM_H
+#define FM_ENGINE_TRANSFORM_H
 
 #include <engine/common.h>
 

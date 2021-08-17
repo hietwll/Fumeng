@@ -1,5 +1,5 @@
-#ifndef FM_ENGINE_RAY_H
-#define FM_ENGINE_RAY_H
+#ifndef FM_ENGINE_SAMPLER_H
+#define FM_ENGINE_SAMPLER_H
 
 #include <engine/common.h>
 
