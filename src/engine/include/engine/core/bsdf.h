@@ -18,7 +18,7 @@ struct BSDFSampleInfo
 {
     vec3 f; // bsdf value
     vec3 wi_w; // sampled direction in world space
-    real pdf = 0.0; // pdf
+    real pdf = 0.0_r; // pdf
     bool is_delta = false; // if bsdf is delta function
 
     BSDFSampleInfo(vec3 value, vec3 dir, real density, bool delta) :
@@ -72,8 +72,8 @@ public:
      */
     virtual real PdfLocal(const vec3& wo, const vec3& wi) const
     {
-        if(wo.z * wi.z < 0) {
-            return 0;
+        if(wo.z * wi.z < 0.0_r) {
+            return 0.0_r;
         }
         return std::abs(wi.z) * InvPI; // the hemisphere integration of cosine is PI
     }
@@ -86,8 +86,8 @@ public:
     {
         vec3 wo = WorldToShading(wo_w);
         vec3 wi = CosineWeightedHemisphere(samples);
-        if (wo.z < 0) {
-            wi.z *= -1; // make sure they are in the same hemisphere
+        if (wo.z < 0.0_r) {
+            wi.z *= -1.0_r; // make sure they are in the same hemisphere
         }
 
         real pdf = PdfLocal(wo, wi);

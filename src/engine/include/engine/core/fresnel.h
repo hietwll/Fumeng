@@ -37,21 +37,21 @@ public:
             cos_i = -cos_i; // make sure cos_i is greater than zero.
         }
 
-        const real sin_i = std::sqrt((std::max)(0.0f, 1 - cos_i * cos_i));
+        const real sin_i = std::sqrt((std::max)(0.0_r, 1.0_r - cos_i * cos_i));
         const real sin_t = eta_out / eta_in * sin_i;
 
-        if(sin_t >= 1.0f) {
-            return {1.0f, 1.0f, 1.0f};
+        if(sin_t >= 1.0_r) {
+            return {1.0_r, 1.0_r, 1.0_r};
         }
 
-        const real cos_t = std::sqrt((std::max)(0.0f, 1 - sin_t * sin_t));
+        const real cos_t = std::sqrt((std::max)(0.0_r, 1.0_r - sin_t * sin_t));
 
         const real parallel = (eta_in * cos_i - eta_out * cos_t)
                 / (eta_in * cos_i + eta_out * cos_t);
         const real perpendicular = (eta_out * cos_i - eta_in * cos_t)
                 / (eta_out * cos_i + eta_in * cos_t);
 
-        const real fr = (parallel * parallel + perpendicular * perpendicular) * 0.5;
+        const real fr = (parallel * parallel + perpendicular * perpendicular) * 0.5_r;
 
         return {fr, fr, fr};
     };
@@ -79,25 +79,25 @@ public:
      */
     vec3 CalFr(real cos_i) const override
     {
-        if(cos_i <= 0.0f) {
+        if(cos_i <= 0.0_r) {
             return {};
         }
 
         const real cos2 = cos_i * cos_i;
-        const real sin2 = (std::max)(0.0f, 1 - cos2);
+        const real sin2 = (std::max)(0.0_r, 1.0_r - cos2);
 
-        const vec3 t0 = eta_2_ - eta_k_2_ - sin2;
-        const vec3 a2b2 = sqrt((t0 * t0 + 4.0 * eta2 * etak2));
+        const vec3 t0 = eta2 - etak2 - sin2;
+        const vec3 a2b2 = sqrt((t0 * t0 + 4.0_r * eta2 * etak2));
         const vec3 t1 = a2b2 + cos2;
-        const vec3 a = sqrt(0.5 * (a2b2 + t0));
-        const vec3 t2 = 2.0 * cos_i * a;
+        const vec3 a = sqrt(0.5_r * (a2b2 + t0));
+        const vec3 t2 = 2.0_r * cos_i * a;
         const vec3 rs = (t1 - t2) / (t1 + t2);
 
         const vec3 t3 = cos2 * a2b2 + sin2 * sin2;
         const vec3 t4 = t2 * sin2;
         const vec3 rp = rs * (t3 - t4) / (t3 + t4);
 
-        return (rp + rs) * color * 0.5;
+        return (rp + rs) * color * 0.5_r;
     };
 };
 

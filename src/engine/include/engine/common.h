@@ -13,17 +13,42 @@
 
 FM_ENGINE_BEGIN
 
+#ifdef USE_FLOAT
 using vec2 = glm::vec2;
 using vec3 = glm::vec3;
 using vec4 = glm::vec4;
 using mat4 = glm::mat4;
 using real = float;
+#else
+using vec2 = glm::dvec2;
+using vec3 = glm::dvec3;
+using vec4 = glm::dvec4;
+using mat4 = glm::dmat4;
+using real = double;
+#endif
+
 using dreal = double;
+
+real constexpr operator"" _r(long double v) {
+    return real(v);
+}
+
+real constexpr operator"" _r(unsigned long long v) {
+    return real(v);
+}
+
+dreal constexpr operator"" _d(long double v) {
+    return dreal(v);
+}
+
+dreal constexpr operator"" _d(unsigned long long v) {
+    return dreal(v);
+}
 
 constexpr real REAL_MAX = std::numeric_limits<real>::max();
 
-const real PI = 3.14159265354;
-const real InvPI = 1.0 / PI;
+const real PI = 3.14159265354_r;
+const real InvPI = 1.0_r / PI;
 
 // forward declaration
 class Ray;

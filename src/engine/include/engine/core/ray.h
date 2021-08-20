@@ -13,7 +13,7 @@ public:
     vec3 dir; // should be normalized
     real t_max;
 
-    Ray() : Ray(vec3(), vec3(1.0, 0.0, 0.0)){};
+    Ray() : Ray(vec3(), vec3(1.0_r, 0.0_r, 0.0_r)){};
     Ray(const vec3& o, const vec3& d, real tmax = REAL_MAX) : ori(o), dir(d), t_max(tmax){};
     vec3 operator()(real time) const { return std::move(ori + dir * time); };
 
