@@ -10,7 +10,7 @@ class Material
 {
 public:
     virtual ~Material() = default;
-    virtual void ComputeBSDF(HitPoint& hit_point) const = 0;
+    virtual void CreateBSDF(HitPoint& hit_point) const = 0;
 };
 
 FM_ENGINE_END

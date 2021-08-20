@@ -9,9 +9,7 @@ private:
 public:
     LambertDiffuseBSDF(const HitPoint& hit_point, const vec3& albedo);
     ~LambertDiffuseBSDF() = default;
-    vec3 Cal_f(const vec3& wo, const vec3& wi) const override;
-    real Pdf(const vec3& wo, const vec3& wi) const override;
-    BSDFSampleInfo SampleBSDF(const vec3& wo, const vec3& samples) const override;
+    vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
 };
 
 LambertDiffuseBSDF::LambertDiffuseBSDF(const HitPoint& hit_point, const vec3 &albedo) : BSDF(hit_point)
@@ -19,14 +17,24 @@ LambertDiffuseBSDF::LambertDiffuseBSDF(const HitPoint& hit_point, const vec3 &al
     color = albedo * InvPI;
 }
 
-vec3 LambertDiffuseBSDF::Cal_f(const vec3 &wo, const vec3 &wi) const
+vec3 LambertDiffuseBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 {
     return color;
 }
 
 class LambertDiffuse : public Material
 {
+private:
+    vec3 albedo;
+public:
+    LambertDiffuse(vec3& color) : albedo(color)
+    {
+    };
 
+    void CreateBSDF(HitPoint &hit_point) const override
+    {
+        hit_point.bsdf = makeSP<LambertDiffuseBSDF>(hit_point, albedo);
+    };
 };
 
 FM_ENGINE_END

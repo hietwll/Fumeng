@@ -19,7 +19,7 @@ struct BSDFSampleInfo
     vec3 f; // bsdf value
     vec3 wi_w; // sampled direction in world space
     real pdf = 0.0; // pdf
-    bool is_delta = false; // if bsdf delta
+    bool is_delta = false; // if bsdf is delta function
 
     BSDFSampleInfo(vec3 value, vec3 dir, real density, bool delta) :
     f(value), wi_w(dir), pdf(density), is_delta(delta)
