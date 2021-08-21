@@ -17,7 +17,7 @@ public:
 
     vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override
     {
-        return vec3(0.0_r, 0.0_r, 0.0_r);
+        return {0.0_r, 0.0_r, 0.0_r};
     };
 
     real PdfLocal(const vec3& wo, const vec3& wi) const override
@@ -50,8 +50,8 @@ public:
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        auto frenel = makeSP<DielectricFresnel>(eta_i, eta_o);
-        hit_point.bsdf = makeSP<SpecularReflectionBSDF>(hit_point, albedo, frenel);
+        auto fresnel = MakeSP<DielectricFresnel>(eta_i, eta_o);
+        hit_point.bsdf = MakeSP<SpecularReflectionBSDF>(hit_point, albedo, fresnel);
     };
 };
 

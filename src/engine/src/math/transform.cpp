@@ -1,5 +1,7 @@
 #include <engine/core/transform.h>
 #include <glm/gtx/transform.hpp>
+#include <engine/core/ray.h>
+#include <engine/core/hit_point.h>
 
 FM_ENGINE_BEGIN
 
@@ -23,13 +25,34 @@ Transform::Transform(const vec3 &translation, const vec3 &rotation, const vec3 &
 
 Transform Transform::InvTransform() const
 {
-    return std::move(Transform(inv_, matrix_));
+    return {inv_, matrix_};
 }
 
 vec3 Transform::ApplyToVec3(const vec3 &vec) const
 {
+    const auto v4 = matrix_ * vec4(vec, 0.0_r);
+    return {v4.x, v4.y, v4.z};
+}
+
+vec3 Transform::ApplyToPoint(const vec3 &vec) const
+{
     const auto v4 = matrix_ * vec4(vec, 1.0_r);
-    return vec3(v4.x, v4.y, v4.z) / v4.w;
+    return {v4.x / v4.w, v4.y / v4.w , v4.z / v4.w};
+}
+
+Ray Transform::ApplyToRay(const Ray &r) const
+{
+    const vec3 ori = ApplyToVec3(r.ori);
+    const vec3 dir = ApplyToVec3(r.dir);
+    return {ori, dir, r.t_min, r.t_max};
+}
+
+void Transform::ApplyToHitPoint(HitPoint* hit_point) const
+{
+    hit_point->pos = ApplyToPoint(hit_point->pos);
+    hit_point->ng = ApplyToVec3(hit_point->ng);
+    hit_point->ns = ApplyToVec3(hit_point->ns);
+    hit_point->ss = ApplyToVec3(hit_point->ss);
 }
 
 vec3 Transform::ApplyToNormal(const vec3 &norm) const

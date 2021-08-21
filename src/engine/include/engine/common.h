@@ -49,6 +49,7 @@ constexpr real REAL_MAX = std::numeric_limits<real>::max();
 
 const real PI = (real) 3.14159265354_d;
 const real InvPI = (real) (1.0_d / PI);
+const real eps = 1e-5_r;
 
 // forward declaration
 class Ray;
@@ -64,7 +65,7 @@ template<typename T>
 using SP = std::shared_ptr<T>;
 
 template<typename T, typename...Params>
-SP<T> makeSP(Params&&...params)
+SP<T> MakeSP(Params&&...params)
 {
     return std::make_shared<T>(std::forward<Params>(params)...);
 }
@@ -74,7 +75,7 @@ template<typename T>
 using UP = std::unique_ptr<T>;
 
 template<typename T, typename...Params>
-UP<T> makeUP(Params&&...params)
+UP<T> MakeUP(Params&&...params)
 {
     return std::make_unique<T>(std::forward<Params>(params)...);
 }

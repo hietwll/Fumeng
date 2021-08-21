@@ -33,7 +33,7 @@ public:
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        hit_point.bsdf = makeSP<LambertDiffuseBSDF>(hit_point, albedo);
+        hit_point.bsdf = MakeSP<LambertDiffuseBSDF>(hit_point, albedo);
     };
 };
 

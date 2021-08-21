@@ -9,9 +9,12 @@ class HitPoint
 {
 public:
     SP<BSDF> bsdf = nullptr;
-    vec3 ng;
-    vec3 ns;
-    vec3 ss;
+    vec3 pos; // hit point position, world space
+    vec3 ng; // geometry normal, world space
+    vec3 ns; // shading normal, world space
+    vec3 ss; // primary tangent, world space
+
+    vec2 uv; // uv coordinate
 };
 
 FM_ENGINE_END

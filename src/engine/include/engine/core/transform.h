@@ -17,7 +17,10 @@ public:
 
     Transform InvTransform() const;
     vec3 ApplyToNormal(const vec3& norm) const;
+    Ray ApplyToRay(const Ray& r) const;
     vec3 ApplyToVec3(const vec3& vec) const;
+    vec3 ApplyToPoint(const vec3& vec) const;
+    void ApplyToHitPoint(HitPoint* hit_point) const;
 };
 
 FM_ENGINE_END

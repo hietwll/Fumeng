@@ -31,6 +31,16 @@ inline vec3 CosineWeightedHemisphere(const vec2& samples)
     return {proj.x, proj.y, std::sqrt(zz)};
 }
 
+inline real SquareSum(const vec3& vec)
+{
+    return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
+}
+
+inline real Clamp(real v, const real& low, const real& up)
+{
+    return v > up ? up : (v < low ? low : v);
+}
+
 FM_ENGINE_END
 
 #endif
