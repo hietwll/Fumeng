@@ -27,7 +27,7 @@ class LambertDiffuse : public Material
 private:
     vec3 albedo;
 public:
-    LambertDiffuse(vec3& color) : albedo(color)
+    LambertDiffuse(const vec3& color) : albedo(color)
     {
     };
 

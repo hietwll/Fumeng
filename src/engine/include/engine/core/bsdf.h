@@ -100,7 +100,9 @@ public:
      */
     vec3 WorldToShading(const vec3& vec) const
     {
-        return vec3(glm::dot(vec, xs), glm::dot(vec, ys), glm::dot(vec, zs));
+        return glm::normalize(
+                vec3(glm::dot(vec, xs), glm::dot(vec, ys), glm::dot(vec, zs))
+                );
     };
 
     /*
@@ -108,10 +110,21 @@ public:
      */
     vec3 ShadingToWorld(const vec3& vec) const
     {
-        return vec3(xs.x * vec.x + ys.x * vec.y + zs.x * vec.z,
+        return glm::normalize(
+                vec3(xs.x * vec.x + ys.x * vec.y + zs.x * vec.z,
                     xs.y * vec.x + ys.y * vec.y + zs.y * vec.z,
-                    xs.z * vec.x + ys.z * vec.y + zs.z * vec.z);
+                    xs.z * vec.x + ys.z * vec.y + zs.z * vec.z)
+                );
     };
+
+    /*
+     * Calculate the cos_i between wi and normal (0, 0 ,1) in shading space.
+     * wi \cdot n = |wi||n| cos_i
+     */
+    real CosDir(const vec3& wi) const
+    {
+        return glm::normalize(wi).z;
+    }
 };
 
 FM_ENGINE_END

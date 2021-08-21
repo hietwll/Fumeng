@@ -5,7 +5,7 @@ PROJECT(Fumeng)
 option(USE_FLOAT "Use float precision for calculation" ON)
 
 if(USE_FLOAT)
-    message("USE_FLOAT")
+    message("Use float precision for calculation")
     add_definitions(-DUSE_FLOAT)
 endif(USE_FLOAT)
 
