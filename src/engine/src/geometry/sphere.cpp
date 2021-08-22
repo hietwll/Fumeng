@@ -13,12 +13,18 @@ class Sphere : public Geometry
 {
 private:
     real radius;
+    real radius_world;
+    real rw2; // radius_world * radius_world
+    real area;
 
 public:
     Sphere(real r, const Transform& to_world)
     : radius(r), Geometry(to_world)
     {
-
+        radius_world = radius *
+                glm::length(to_world.ApplyToVec3(vec3(1.0_r, 0.0_r, 0.0_r)));
+        rw2 = radius_world * radius_world;
+        area = 4.0_r * PI * rw2;
     }
 
     bool IsIntersect(const Ray &r) const override
@@ -39,6 +45,16 @@ public:
 
         vec3 pos = r_l(t);
 
+        CalHitPoint(pos, hit_point);
+
+        return true;
+    }
+
+    /*
+     * Fill HitPoint(in world space) based on given hit position.
+     */
+    void CalHitPoint(const vec3& pos, HitPoint* hit_point) const
+    {
         // Get UV coordinate;
         real phi = (pos.x == 0 && !pos.y) ? 0.0_r : std::atan2(pos.y, pos.x);
         if(phi < 0) {
@@ -52,7 +68,7 @@ public:
         vec3 aux = vec3(0.0_r, 0.0_r, 1.0_r);
 
         if(std::abs(geom_norm.z - 1.0_r) < eps ||
-            std::abs(geom_norm.z + 1.0_r) < eps)
+        std::abs(geom_norm.z + 1.0_r) < eps)
         {
             aux = vec3(1.0_r, 0.0_r, 0.0_r);
         }
@@ -65,8 +81,6 @@ public:
         hit_point->ss = glm::cross(geom_norm, aux);
 
         object_to_world.ApplyToHitPoint(hit_point);
-
-        return true;
     }
 
     bool IntersectSphere(const Ray &r, Ray& r_l, real& t) const
@@ -107,6 +121,78 @@ public:
         t1 = (-b + delta) * inv2a;
 
         return true;
+    }
+
+    HitPoint Sample(real *pdf, const vec3 &sample) const override
+    {
+        vec2 samp = vec2(sample.x, sample.y);
+        vec3 pos = UniformSphere(samp) * radius;
+
+        *pdf = 1.0_r / area;
+
+        HitPoint hit_point;
+        CalHitPoint(pos, &hit_point);
+        return hit_point;
+    }
+
+    HitPoint Sample(const HitPoint& ref, real *pdf, const vec3 &sample) const override
+    {
+        // shading point in local space
+        const vec3 sp_l = world_to_object.ApplyToPoint(ref.pos);
+        const real dis = glm::length(sp_l);
+
+        // if the shading point is inside sphere, then sampling the whole sphere
+        if(dis < radius) {
+            return Sample(pdf, sample);
+        }
+
+        // else sample on cone, visibility is tested in MIS.
+        const real cos_theta = std::min(radius / dis, 1.0_r);
+        vec3 dir_samp;
+        real pdf_area;
+        const vec2 samp = vec2(sample.x, sample.y);
+
+        UniformCone(cos_theta, samp, &dir_samp, &pdf_area);
+
+        // transform a locally-sampled pos to sphere space
+        const vec3 axis_z = glm::normalize(sp_l);
+        vec3 axis_x, axis_y;
+        CreateCoordSys(axis_z, &axis_x, &axis_y);
+
+        const vec3 pos = radius *
+                (axis_x * dir_samp.x + axis_y * dir_samp.y + axis_z * dir_samp.z);
+
+        HitPoint hit_point;
+        CalHitPoint(pos, &hit_point);
+
+        // pdf_area is based on unit sphere
+        *pdf = pdf_area / rw2;
+        return hit_point;
+    }
+
+    real Pdf(const HitPoint& ref, const vec3& sample) const override
+    {
+        // shading point in local space
+        const vec3 sp_l = world_to_object.ApplyToPoint(ref.pos);
+        const real dis = glm::length(sp_l);
+
+        // if the shading point is inside sphere, then sampling the whole sphere
+        if(dis < radius) {
+            return Geometry::Pdf(ref);
+        }
+
+        // else sample on cone
+        const real cos_theta = std::min(radius / dis, 1.0_r);
+
+        return 1.0_r / (2.0_r * PI * (1.0_r - cos_theta)) / rw2;
+    }
+
+    /*
+     * Get the area
+     */
+    real Area() const
+    {
+        return area;
     }
 
     /*

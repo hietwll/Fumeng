@@ -85,7 +85,7 @@ public:
     virtual BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const
     {
         vec3 wo = WorldToShading(wo_w);
-        vec3 wi = CosineWeightedHemisphere(samples);
+        vec3 wi = CosineWeightedHemiSphere(samples);
         if (wo.z < 0.0_r) {
             wi.z *= -1.0_r; // make sure they are in the same hemisphere
         }

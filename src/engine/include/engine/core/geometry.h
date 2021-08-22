@@ -38,16 +38,31 @@ public:
 
     /**
      * Sample a point on the surface and return pdf (to area).
+     * By default, we use a uniform distribution over surface area.
      */
     virtual HitPoint Sample(real *pdf, const vec3 &sample) const = 0;
 
     /**
-     * Get the pdf of a point.
+     * Get the pdf of a point, w.r.t. area
      */
-    virtual real Pdf(const vec3 &pos) const
+    virtual real Pdf(const HitPoint& ref) const
     {
         return 1.0_r / Area();
     };
+
+    /**
+     * For sampling light, a more efficient way is to only sample point that is visible
+     * to the point to be shaded (i.e. ref).
+     * It doesn't make sense to calculate the pdf w.r.t solid angle here, because that
+     * breaks the uniformity. Here we still return the pdf w.r.t surface area and get
+     * the pdf w.r.t solid angle in MIS.
+     */
+    virtual HitPoint Sample(const HitPoint& ref, real *pdf, const vec3& sample) const = 0;
+
+    /*
+     * Get the pdf of w.r.t. area by sampling the point visible by ref
+     */
+    virtual real Pdf(const HitPoint& ref, const vec3& sample) const = 0;
 };
 
 FM_ENGINE_END
