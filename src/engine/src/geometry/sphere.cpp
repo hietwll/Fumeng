@@ -46,6 +46,7 @@ public:
         vec3 pos = r_l(t);
 
         CalHitPoint(pos, hit_point);
+        hit_point->t = t;
 
         return true;
     }

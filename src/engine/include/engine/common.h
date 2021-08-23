@@ -59,6 +59,9 @@ class Camera;
 class Transform;
 class HitPoint;
 class BSDF;
+class Geometry;
+class Material;
+class RenderObject;
 
 // share pointers
 template<typename T>

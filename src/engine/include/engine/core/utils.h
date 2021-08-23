@@ -69,7 +69,8 @@ inline real Clamp(real v, const real& low, const real& up)
     return v > up ? up : (v < low ? low : v);
 }
 
-inline void CreateCoordSys(const vec3& v1, vec3* v2, vec3* v3) {
+inline void CreateCoordSys(const vec3& v1, vec3* v2, vec3* v3)
+{
     if (std::abs(v1.x) > std::abs(v1.y))
     {
         *v2 = glm::normalize(vec3(-v1.z, 0.0_r, v1.x));
@@ -78,6 +79,19 @@ inline void CreateCoordSys(const vec3& v1, vec3* v2, vec3* v3) {
     }
 
     *v3 = glm::cross(v1, *v2);
+}
+
+inline bool IsBlack(const vec3& color)
+{
+    if(color.x == 0.0_r && color.y == 0.0_r && color.z == 0.0_r) {
+        return true;
+    }
+
+    if(color.x < 0.0_r || color.y < 0.0_r || color.z < 0.0_r) {
+        return true;
+    }
+
+    return false;
 }
 
 FM_ENGINE_END
