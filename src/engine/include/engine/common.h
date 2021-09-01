@@ -62,6 +62,9 @@ class BSDF;
 class Geometry;
 class Material;
 class RenderObject;
+class Aggregate;
+class Light;
+class Image;
 
 // share pointers
 template<typename T>

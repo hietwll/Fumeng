@@ -37,6 +37,13 @@ public:
         }
         return res;
     }
+
+    void ConstructAreaLight(std::vector<SP<const Light>>& lights) const override
+    {
+        for(auto& obj : objects) {
+            obj.get()->ConstructAreaLight(lights);
+        }
+    }
 };
 
 FM_ENGINE_END

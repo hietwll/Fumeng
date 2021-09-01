@@ -14,6 +14,7 @@ private:
     SP<const Geometry> geometry;
     SP<const Material> material;
     SP<const AreaLight> area_light;
+    bool emissive = false;
 
 public:
     RenderObject(SP<const Geometry>& geometry_, SP<const Material>& material_, vec3 emittance = {0.0_r, 0.0_r, 0.0_r})
@@ -22,12 +23,18 @@ public:
         material = material_;
         if(!IsBlack(emittance)) {
             area_light = MakeSP<AreaLight>(geometry.get(), emittance);
+            emissive = true;
         }
     }
 
     bool IsIntersect(const Ray &r) const
     {
         return geometry->IsIntersect(r);
+    }
+
+    bool IsEmissive()
+    {
+        return emissive;
     }
 
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const
@@ -40,6 +47,13 @@ public:
         hit_point->material = material.get();
 
         return true;
+    }
+
+    void ConstructAreaLight(std::vector<SP<const Light>>& lights) const
+    {
+        if(emissive) {
+            lights.push_back(area_light);
+        }
     }
 };
 

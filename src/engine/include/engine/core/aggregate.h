@@ -23,6 +23,8 @@ public:
      * Both Ray and HitPoint should be in world space
      */
     virtual bool GetIntersect(const Ray &r, HitPoint *hit_point) const = 0;
+
+    virtual void ConstructAreaLight(std::vector<SP<const Light>>& lights) const = 0;
 };
 
 FM_ENGINE_END
