@@ -6,6 +6,7 @@
 #include <engine/core/sampler.h>
 #include <engine/core/scene.h>
 #include <engine/core/camera.h>
+#include <engine/core/ray.h>
 
 FM_ENGINE_BEGIN
 
@@ -15,7 +16,9 @@ private:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 1;
+    int spp = 3;
+    int depth = 5;
+    int rr_depth = 2;
     Sampler sampler;
 
 public:
@@ -44,8 +47,7 @@ public:
 
     virtual vec3 RenderPixel(Scene& scene, Ray& ray) const
     {
-        vec3 color;
-        return color;
+        return black;
     }
 };
 

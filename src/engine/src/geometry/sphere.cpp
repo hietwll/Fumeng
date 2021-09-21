@@ -7,8 +7,6 @@
 
 FM_ENGINE_BEGIN
 
-
-
 class Sphere : public Geometry
 {
 private:
@@ -208,5 +206,9 @@ public:
     }
 };
 
+SP<Geometry> CreateSphere(real radius, const Transform& to_world)
+{
+    return MakeSP<Sphere>(radius, to_world);
+}
 
 FM_ENGINE_END

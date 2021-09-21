@@ -6,6 +6,8 @@
 #include <engine/core/material.h>
 #include <engine/core/light.h>
 
+#include <vector>
+
 FM_ENGINE_BEGIN
 
 class RenderObject
@@ -58,3 +60,5 @@ public:
 };
 
 FM_ENGINE_END
+
+#endif

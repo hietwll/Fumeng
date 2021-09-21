@@ -55,4 +55,9 @@ public:
     };
 };
 
+SP<Material> CreateSpecularReflection(const vec3& color, real eta_in, real eta_out)
+{
+    return MakeSP<SpecularReflection>(color, eta_in, eta_out);
+}
+
 FM_ENGINE_END

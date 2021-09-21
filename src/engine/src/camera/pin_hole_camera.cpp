@@ -42,4 +42,9 @@ Ray PinHoleCamera::SampleRay(const vec2 &ndc_pos) const
     return ray;
 }
 
+SP<Camera> CreatePinPoleCamera(const vec3& pos, const vec3& look_at, const vec3& up, real focal_distance, real fov = 60.0_r, real aspect = 1.0_r)
+{
+    return MakeSP<PinHoleCamera>(pos, look_at, up, focal_distance, fov, aspect);
+}
+
 FM_ENGINE_END

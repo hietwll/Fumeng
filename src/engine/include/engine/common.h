@@ -65,6 +65,15 @@ class RenderObject;
 class Aggregate;
 class Light;
 class Image;
+class Sphere;
+
+// color
+const vec3 red = vec3(1.0_r, 0.0_r, 0.0_r);
+const vec3 blue = vec3(0.0_r, 1.0_r, 0.0_r);
+const vec3 green = vec3(0.0_r, 0.0_r, 1.0_r);
+const vec3 black = vec3(0.0_r, 0.0_r, 0.0_r);
+const vec3 white = vec3(1.0_r, 1.0_r, 1.0_r);
+
 
 // share pointers
 template<typename T>

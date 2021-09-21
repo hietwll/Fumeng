@@ -9,13 +9,13 @@ FM_ENGINE_BEGIN
 
 class Scene
 {
-private:
+protected:
     SP<const Camera> camera;
     SP<const Aggregate> aggregate;
     std::vector<SP<const Light>> lights;
 
 public:
-    Scene(SP<Camera>& camera_, SP<Aggregate>& aggregate_)
+    Scene(SP<const Camera>& camera_, SP<const Aggregate>& aggregate_)
     : camera(camera_), aggregate(aggregate_)
     {
         aggregate->ConstructAreaLight(lights);
@@ -24,6 +24,16 @@ public:
     SP<const Camera> GetCamera()
     {
         return camera;
+    }
+
+    bool IsIntersect(const Ray &r) const
+    {
+        return aggregate->IsIntersect(r);
+    }
+
+    bool GetIntersect(const Ray &r, HitPoint *hit_point) const
+    {
+        return aggregate->GetIntersect(r, hit_point);
     }
 
     virtual ~Scene() = default;

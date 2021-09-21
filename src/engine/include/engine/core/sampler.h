@@ -13,7 +13,7 @@ class Sampler
 public:
     using rng_t = std::mt19937_64;
     using udis_t = std::uniform_real_distribution<real>;
-    rng_t rng;
+    mutable rng_t rng;
     udis_t udis;
     size_t seed;
 

@@ -4,7 +4,7 @@
 
 FM_ENGINE_BEGIN
 
-class SimpleAggregate : Aggregate
+class SimpleAggregate : public Aggregate
 {
 private:
     std::vector<SP<const RenderObject>> objects;
@@ -45,5 +45,10 @@ public:
         }
     }
 };
+
+SP<Aggregate> CreateSimpleAggregate(const std::vector<SP<const RenderObject>>& objects)
+{
+    return MakeSP<SimpleAggregate>(objects);
+}
 
 FM_ENGINE_END

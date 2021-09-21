@@ -37,4 +37,9 @@ public:
     };
 };
 
+SP<Material> CreateLambertDiffuse(const vec3& color)
+{
+    return MakeSP<LambertDiffuse>(color);
+}
+
 FM_ENGINE_END

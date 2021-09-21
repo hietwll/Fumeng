@@ -12,8 +12,19 @@ public:
 
     vec3 RenderPixel(Scene& scene, Ray& ray) const override
     {
-
+        vec3 color = black;
+        vec3 beta = vec3(1.0_r, 1.0_r, 1.0_r);
+        Ray r = ray;
+        if(scene.IsIntersect(r)) {
+            color = vec3(1.0_r, 0.0_r, 0.0_r);
+        }
+        return color;
     }
 };
+
+SP<Renderer> CreatePathTracingRenderer(int w, int h)
+{
+    return MakeSP<PathTracingRenderer>(w, h);
+}
 
 FM_ENGINE_END
