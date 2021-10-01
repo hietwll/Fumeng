@@ -12,11 +12,11 @@ using namespace fumeng::engine;
 
 int main()
 {
-    SP<const Geometry> sphere = CreateSphere(1.0_r, Transform(mat4()));
+    SP<const Geometry> sphere = CreateSphere(1.0_r, Transform(mat4(1.0_r)));
     SP<const Camera> camera = CreatePinPoleCamera(vec3(0.0, 5.0_r, 0.0),
                                             vec3(0.0, -1.0_r, 0.0),
                                             vec3(0.0, 0.0, 1.0_r),
-                                            5.0_r, 60.0_r, 4.0_r / 3.0_r);
+                                            5.0_r, DegToRad(60.0_r), 4.0_r / 3.0_r);
     SP<const Material> material = CreateLambertDiffuse(vec3(0.0, 1.0_r, 0.0));
     SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, vec3(0.0, 0.0, 0.0));
 

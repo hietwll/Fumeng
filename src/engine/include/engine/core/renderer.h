@@ -16,7 +16,7 @@ private:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 3;
+    int spp = 5;
     int depth = 5;
     int rr_depth = 2;
     Sampler sampler;
@@ -34,14 +34,18 @@ public:
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
+            {
+                image(i,j) = black;
                 for(int k = 0; k < spp; k++) {
                     const vec2 film_sample = sampler.Get2D();
                     const real px = (i + film_sample.x) / res_x;
-                    const real py = (i + film_sample.y) / res_y;
+                    const real py = (j + film_sample.y) / res_y;
                     Ray camera_ray = scene.GetCamera()->SampleRay({px, py});
-                    image(i,j) = RenderPixel(scene, camera_ray);
+                    //Ray test_ray(vec3(0.0_r, 5.0_r, 0.0_r), vec3(0.0_r, -1.0_r, 0.0_r));
+                    image(i,j) += RenderPixel(scene, camera_ray);
                 }
-
+                image(i,j) /= spp;
+            }
         image.save_to_file("test.png");
     }
 

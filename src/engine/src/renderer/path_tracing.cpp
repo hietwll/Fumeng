@@ -1,5 +1,7 @@
 #include <engine/core/renderer.h>
 
+#include <iostream>
+
 FM_ENGINE_BEGIN
 
 class PathTracingRenderer : public Renderer

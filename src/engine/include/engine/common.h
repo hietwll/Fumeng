@@ -1,6 +1,8 @@
 #ifndef FM_ENGINE_COMMON_H
 #define FM_ENGINE_COMMON_H
 
+#define GLM_FORCE_LEFT_HANDED
+
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

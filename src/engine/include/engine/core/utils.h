@@ -94,6 +94,11 @@ inline bool IsBlack(const vec3& color)
     return false;
 }
 
+inline real DegToRad(real deg)
+{
+    return deg / 180.0_r * PI;
+}
+
 FM_ENGINE_END
 
 #endif
