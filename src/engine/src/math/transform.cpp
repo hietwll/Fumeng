@@ -42,7 +42,7 @@ vec3 Transform::ApplyToPoint(const vec3 &vec) const
 
 Ray Transform::ApplyToRay(const Ray &r) const
 {
-    const vec3 ori = ApplyToVec3(r.ori);
+    const vec3 ori = ApplyToPoint(r.ori);
     const vec3 dir = ApplyToVec3(r.dir);
     return {ori, dir, r.t_min, r.t_max};
 }
