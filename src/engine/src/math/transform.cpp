@@ -50,14 +50,14 @@ Ray Transform::ApplyToRay(const Ray &r) const
 void Transform::ApplyToHitPoint(HitPoint* hit_point) const
 {
     hit_point->pos = ApplyToPoint(hit_point->pos);
-    hit_point->ng = ApplyToVec3(hit_point->ng);
-    hit_point->ns = ApplyToVec3(hit_point->ns);
+    hit_point->ng = ApplyToNormal(hit_point->ng);
+    hit_point->ns = ApplyToNormal(hit_point->ns);
     hit_point->ss = ApplyToVec3(hit_point->ss);
 }
 
 vec3 Transform::ApplyToNormal(const vec3 &norm) const
 {
-    const auto v4 = glm::transpose(inv_) * vec4(norm, 1.0_r);
+    const auto v4 = glm::transpose(inv_) * vec4(norm, 0.0_r);
     return glm::normalize(vec3(v4.x, v4.y, v4.z));
 }
 

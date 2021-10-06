@@ -2,6 +2,7 @@
 #define FM_ENGINE_HIT_POINT_H
 
 #include <engine/common.h>
+#include <engine/core/ray.h>
 
 FM_ENGINE_BEGIN
 
@@ -19,7 +20,20 @@ public:
     vec2 uv; // uv coordinate
 
     real t = REAL_MAX; // t for current hitting ray
+
+    Ray GenRay(const vec3& dir) const
+    {
+        vec3 ori;
+        if (glm::dot(dir, ng) > 0) {
+            ori = pos + ng * eps;
+        } else {
+            ori = pos - ng * eps;
+        }
+
+        return {ori, dir};
+    }
 };
+
 
 FM_ENGINE_END
 

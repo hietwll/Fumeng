@@ -99,6 +99,11 @@ inline real DegToRad(real deg)
     return deg / 180.0_r * PI;
 }
 
+inline real AbsDot(const vec3& v1, const vec3& v2)
+{
+    return std::abs(glm::dot(v1, v2));
+}
+
 FM_ENGINE_END
 
 #endif

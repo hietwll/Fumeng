@@ -12,13 +12,16 @@ FM_ENGINE_BEGIN
 
 class Renderer
 {
-private:
+protected:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 5;
-    int depth = 5;
-    int rr_depth = 2;
+    int spp = 1; // samples per pixel
+    int depth = 6; // loop times for path tracing render
+    int direct_loop = 3; // loop times for direct lighting
+    int rr_depth = 3; // when to apply Russian roulette
+    real rr_coef = 0.65; // russian roulette coefficient
+
     Sampler sampler;
 
 public:

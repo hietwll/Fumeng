@@ -31,6 +31,15 @@ public:
         return aggregate->IsIntersect(r);
     }
 
+    std::vector<const Light*> GetLights() const
+    {
+        std::vector<const Light*> res;
+        for(auto& light : lights) {
+            res.push_back(light.get());
+        }
+        return res;
+    }
+
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const
     {
         return aggregate->GetIntersect(r, hit_point);
