@@ -10,5 +10,6 @@ if(USE_FLOAT)
 endif(USE_FLOAT)
 
 ADD_SUBDIRECTORY(thirdparty/glm)
+ADD_SUBDIRECTORY(thirdparty/spdlog)
 ADD_SUBDIRECTORY(src/engine)
 ADD_SUBDIRECTORY(src/cmd)

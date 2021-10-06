@@ -7,8 +7,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
-
 #include <memory>
+#include <spdlog/spdlog.h>
 
 #define FM_ENGINE_BEGIN namespace fumeng::engine {
 #define FM_ENGINE_END }
