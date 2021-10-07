@@ -34,6 +34,10 @@ public:
         return {Get1D(), Get1D()};
     }
 
+    vec3 Get3D() const
+    {
+        return {Get1D(), Get1D(), Get1D()};
+    }
 };
 
 FM_ENGINE_END

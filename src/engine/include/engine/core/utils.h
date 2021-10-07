@@ -104,6 +104,11 @@ inline real AbsDot(const vec3& v1, const vec3& v2)
     return std::abs(glm::dot(v1, v2));
 }
 
+inline real PowerHeuristic(real f, real g)
+{
+    return (f * f) / (f * f + g * g);
+}
+
 FM_ENGINE_END
 
 #endif

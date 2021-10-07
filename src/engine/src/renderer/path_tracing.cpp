@@ -87,7 +87,35 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
  */
 vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint) const
 {
+    // sample the light
+    auto light_sample = light->Sample(hitPoint, sampler.Get3D());
 
+    if (light_sample.pdf < eps || light_sample.radiance.length() < eps) {
+        return black;
+    }
+
+    // test occlusion
+    const Ray shadow_ray(light_sample.ref_pos, light_sample.wi_w, eps, light_sample.dist - eps);
+    if (scene.IsIntersect(shadow_ray)) {
+        return black;
+    }
+
+    // calculate bsdf
+    auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
+    if (bsdf_f.length() < eps) {
+        return black;
+    }
+
+    // calculate pdf of bsdf
+    auto bsdf_pdf = hitPoint.bsdf->Pdf(hitPoint.wo_r_w, light_sample.wi_w);
+    if (bsdf_pdf < eps) {
+        return black;
+    }
+
+    // get PowerHeuristic weight for light
+    auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
+    auto f = bsdf_f * AbsDot(light_sample.wi_w, hitPoint.ng);
+    return f * light_sample.radiance * weight / light_sample.pdf;
 }
 
 /*

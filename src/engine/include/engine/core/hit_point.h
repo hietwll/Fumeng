@@ -17,6 +17,7 @@ public:
     vec3 ng; // geometry normal, world space
     vec3 ns; // shading normal, world space
     vec3 ss; // primary tangent, world space
+    vec3 wo_r_w; // reverse of incident direction in world space
     vec2 uv; // uv coordinate
 
     real t = REAL_MAX; // t for current hitting ray

@@ -12,9 +12,11 @@ struct LightSampleInfo
     vec3 wi_w; // direction of sampled light in world space
     vec3 radiance; // radiance of sampled light
     real pdf = 0.0_r; // pdf of the sampled light w.r.t. solid angle
+    real dist = 0.0_r; // lenght of ref_pos - light_pos
 
-    LightSampleInfo(const vec3& r_pos, const vec3& l_pos, const vec3& wi_, const vec3& radiance_, real pdf_)
-    : ref_pos(r_pos), light_pos(l_pos), wi_w(wi_), radiance(radiance_), pdf(pdf_)
+    LightSampleInfo(const vec3& r_pos, const vec3& l_pos, const vec3& wi_,
+                    const vec3& radiance_, real pdf_, real dist_)
+    : ref_pos(r_pos), light_pos(l_pos), wi_w(wi_), radiance(radiance_), pdf(pdf_), dist(dist_)
     {
     }
 };
@@ -57,9 +59,9 @@ public:
         const vec3 ref_to_light = geom_sample.pos - hit_point.pos;
         const real dist = ref_to_light.length();
         const vec3 wi = glm::normalize(ref_to_light);
-        const real pdf_angle = pdf_area * dist * dist / AbsDot(geom_sample.ng, -wi);
+        const real pdf_solid_angle = pdf_area * dist * dist / AbsDot(geom_sample.ng, -wi);
 
-        return {hit_point.pos, geom_sample.pos, wi, radiance, pdf_angle};
+        return {hit_point.pos, geom_sample.pos, wi, radiance, pdf_solid_angle, dist};
     }
 
     bool IsDelta() const override

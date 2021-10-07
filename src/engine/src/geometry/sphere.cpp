@@ -45,6 +45,7 @@ public:
 
         CalHitPoint(pos, hit_point);
         hit_point->t = t;
+        hit_point->wo_r_w = -r.dir;
 
         return true;
     }
