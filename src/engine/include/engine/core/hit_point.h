@@ -4,6 +4,7 @@
 #include <engine/common.h>
 #include <engine/core/ray.h>
 
+
 FM_ENGINE_BEGIN
 
 class HitPoint

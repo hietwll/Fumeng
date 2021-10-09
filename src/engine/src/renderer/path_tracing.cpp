@@ -2,6 +2,7 @@
 #include <engine/core/hit_point.h>
 #include <engine/core/material.h>
 #include <engine/core/light.h>
+#include <engine/core/render_object.h>
 
 #include <iostream>
 
@@ -58,8 +59,8 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         color += direct / static_cast<real>(direct_loop);
 
         // sample BSDF
-        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(-r.dir, sampler.Get2D());
-        if(bsdf_sample.f.length() < eps || bsdf_sample.pdf < eps) {
+        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
             break;
         }
 
@@ -90,7 +91,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
     // sample the light
     auto light_sample = light->Sample(hitPoint, sampler.Get3D());
 
-    if (light_sample.pdf < eps || light_sample.radiance.length() < eps) {
+    if (light_sample.pdf < eps || glm::length(light_sample.radiance) < eps) {
         return black;
     }
 
@@ -102,7 +103,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
 
     // calculate bsdf
     auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
-    if (bsdf_f.length() < eps) {
+    if (glm::length(bsdf_f) < eps) {
         return black;
     }
 
@@ -123,6 +124,43 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
  */
 vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) const
 {
+    // sample bsdf
+    auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+    if (glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
+        return black;
+    }
+
+    // generate new ray
+    bsdf_sample.wi_w = glm::normalize(bsdf_sample.wi_w);
+    const Ray r = hitPoint.GenRay(bsdf_sample.wi_w);
+
+    // test light visibility
+    HitPoint lightHit;
+    auto is_intersected = scene.GetIntersect(r, &lightHit);
+
+    // environment lighting
+    if (!is_intersected) {
+        // todo: handle environment lighting
+        return black;
+    }
+
+    // hit something else
+    if (!lightHit.object->IsEmissive()) {
+        return black;
+    }
+
+    auto light_to_shd = glm::normalize(r.ori - lightHit.pos);
+    auto light = lightHit.object->GetLight();
+    auto radiance = light->GetRadiance(lightHit.pos, lightHit.ng, lightHit.uv, light_to_shd);
+
+    if (glm::length(radiance) < eps) {
+        return black;
+    }
+
+    auto lightPdf = light->Pdf(r.ori, lightHit.pos, lightHit.ng, light_to_shd);
+    auto f = bsdf_sample.f * radiance * AbsDot(hitPoint.ng, r.dir);
+    auto weight = PowerHeuristic(bsdf_sample.pdf, lightPdf);
+    return f * weight / bsdf_sample.pdf;
 }
 
 SP<Renderer> CreatePathTracingRenderer(int w, int h)

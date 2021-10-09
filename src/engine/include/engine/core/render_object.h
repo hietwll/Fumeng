@@ -5,6 +5,8 @@
 #include <engine/core/geometry.h>
 #include <engine/core/material.h>
 #include <engine/core/light.h>
+#include <engine/core/utils.h>
+#include <engine/core/hit_point.h>
 
 #include <vector>
 
@@ -34,7 +36,7 @@ public:
         return geometry->IsIntersect(r);
     }
 
-    bool IsEmissive()
+    bool IsEmissive() const
     {
         return emissive;
     }
@@ -56,6 +58,11 @@ public:
         if(emissive) {
             lights.push_back(area_light);
         }
+    }
+
+    const AreaLight* GetLight() const
+    {
+        return area_light.get();
     }
 };
 

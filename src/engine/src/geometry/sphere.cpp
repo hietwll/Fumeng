@@ -170,15 +170,15 @@ public:
         return hit_point;
     }
 
-    real Pdf(const HitPoint& ref, const vec3& sample) const override
+    real Pdf(const vec3& shd_pos, const vec3& sample) const override
     {
         // shading point in local space
-        const vec3 sp_l = world_to_object.ApplyToPoint(ref.pos);
+        const vec3 sp_l = world_to_object.ApplyToPoint(shd_pos);
         const real dis = glm::length(sp_l);
 
         // if the shading point is inside sphere, then sampling the whole sphere
         if(dis < radius) {
-            return Geometry::Pdf(ref);
+            return Geometry::Pdf(sample);
         }
 
         // else sample on cone

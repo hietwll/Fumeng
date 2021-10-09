@@ -45,7 +45,7 @@ public:
     /**
      * Get the pdf of a point, w.r.t. area
      */
-    virtual real Pdf(const HitPoint& ref) const
+    virtual real Pdf(const vec3& shd_pos) const
     {
         return 1.0_r / Area();
     };
@@ -62,7 +62,7 @@ public:
     /*
      * Get the pdf of w.r.t. area by sampling the point visible by ref
      */
-    virtual real Pdf(const HitPoint& ref, const vec3& sample) const = 0;
+    virtual real Pdf(const vec3& shd_pos, const vec3& sample) const = 0;
 };
 
 FM_ENGINE_END

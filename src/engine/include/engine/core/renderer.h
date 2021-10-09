@@ -20,7 +20,7 @@ protected:
     int depth = 6; // loop times for path tracing render
     int direct_loop = 3; // loop times for direct lighting
     int rr_depth = 3; // when to apply Russian roulette
-    real rr_coef = 0.65; // russian roulette coefficient
+    real rr_coef = 0.65_r; // russian roulette coefficient
 
     Sampler sampler;
 
