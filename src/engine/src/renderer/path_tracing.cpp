@@ -38,9 +38,20 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         {
             // return background color
             if (idx_depth == 1) {
-                return white;
+                return black;
             }
             break;
+        }
+
+        // if first hit an emissive object
+        if(idx_depth == 1)
+        {
+            if(hitPoint.object->IsEmissive())
+            {
+                auto light = hitPoint.object->GetLight();
+                auto radiance = light->GetRadiance(hitPoint.pos, hitPoint.ng, hitPoint.uv, hitPoint.wo_r_w);
+                color += beta * radiance;
+            }
         }
 
         // get material's bsdf
@@ -50,35 +61,35 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         vec3 direct = black;
         for(int i = 0; i < direct_loop; i++)
         {
-            for(auto& light : scene.GetLights()) {
-                direct += beta * MisLight(scene, light, hitPoint);
-            }
+//            for(auto& light : scene.GetLights()) {
+//                direct += beta * MisLight(scene, light, hitPoint);
+//            }
             direct += beta * MisBSDF(scene, hitPoint);
         }
 
         color += direct / static_cast<real>(direct_loop);
 
         // sample BSDF
-        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
-        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
-            break;
-        }
-
-        // update beta coefficient
-        const real abscos = std::abs(glm::dot(hitPoint.ng, bsdf_sample.wi_w));
-        beta *= bsdf_sample.f * abscos / bsdf_sample.pdf;
-
-        // generate new ray
-        r = hitPoint.GenRay(bsdf_sample.wi_w);
-
-        // apply RR strategy
-        if(depth > rr_depth)
-        {
-            if (sampler.Get1D() > rr_coef) {
-                break;
-            }
-            beta /= rr_coef;
-        }
+//        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+//        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
+//            break;
+//        }
+//
+//        // update beta coefficient
+//        const real abscos = std::abs(glm::dot(hitPoint.ng, bsdf_sample.wi_w));
+//        beta *= bsdf_sample.f * abscos / bsdf_sample.pdf;
+//
+//        // generate new ray
+//        r = hitPoint.GenRay(bsdf_sample.wi_w);
+//
+//        // apply RR strategy
+//        if(depth > rr_depth)
+//        {
+//            if (sampler.Get1D() > rr_coef) {
+//                break;
+//            }
+//            beta /= rr_coef;
+//        }
     }
     return color;
 }
@@ -160,7 +171,7 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
     auto lightPdf = light->Pdf(r.ori, lightHit.pos, lightHit.ng, light_to_shd);
     auto f = bsdf_sample.f * radiance * AbsDot(hitPoint.ng, r.dir);
     auto weight = PowerHeuristic(bsdf_sample.pdf, lightPdf);
-    return f * weight / bsdf_sample.pdf;
+    return f / bsdf_sample.pdf; // * weight
 }
 
 SP<Renderer> CreatePathTracingRenderer(int w, int h)

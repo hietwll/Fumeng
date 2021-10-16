@@ -26,6 +26,7 @@ public:
     Ray GenRay(const vec3& dir) const
     {
         vec3 ori;
+        // todo: when object is quite large, eps should also be large
         if (glm::dot(dir, ng) > 0) {
             ori = pos + ng * eps;
         } else {

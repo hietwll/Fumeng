@@ -48,10 +48,11 @@ dreal constexpr operator"" _d(unsigned long long v) {
 }
 
 constexpr real REAL_MAX = std::numeric_limits<real>::max();
+constexpr real REAL_MIN = std::numeric_limits<real>::min();
 
 const real PI = (real) 3.14159265354_d;
 const real InvPI = (real) (1.0_d / PI);
-const real eps = 1e-5_r;
+const real eps = 3e-4_r;
 
 // forward declaration
 class Ray;

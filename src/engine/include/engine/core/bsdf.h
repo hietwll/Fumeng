@@ -32,8 +32,8 @@ class BSDF
 private:
     vec3 ng; // geometry normal, world space
     vec3 xs; // x axis of shading coordinate (primary tangent), world space
-    vec3 ys; // y axis of shading coordinate (secondary tangent), world space
     vec3 zs; // z axis of shading coordinate (shading normal), world space
+    vec3 ys; // y axis of shading coordinate (secondary tangent), world space
 
 public:
     BSDF(const HitPoint& hit_point) :
