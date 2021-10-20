@@ -61,10 +61,10 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         vec3 direct = black;
         for(int i = 0; i < direct_loop; i++)
         {
-//            for(auto& light : scene.GetLights()) {
-//                direct += beta * MisLight(scene, light, hitPoint);
-//            }
-            direct += beta * MisBSDF(scene, hitPoint);
+            for(auto& light : scene.GetLights()) {
+                direct += beta * MisLight(scene, light, hitPoint);
+            }
+            //direct += beta * MisBSDF(scene, hitPoint);
         }
 
         color += direct / static_cast<real>(direct_loop);
@@ -111,6 +111,8 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
     if (scene.IsIntersect(shadow_ray)) {
         return black;
     }
+
+    return red;
 
     // calculate bsdf
     auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);

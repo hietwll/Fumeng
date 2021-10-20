@@ -10,7 +10,6 @@ public:
     SimpleScene(SP<const Camera>& camera_, SP<const Aggregate>& aggregate_)
     : Scene(camera_, aggregate_)
     {
-        aggregate->ConstructAreaLight(lights);
     }
 
 };
