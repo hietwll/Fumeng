@@ -51,6 +51,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
                 auto light = hitPoint.object->GetLight();
                 auto radiance = light->GetRadiance(hitPoint.pos, hitPoint.ng, hitPoint.uv, hitPoint.wo_r_w);
                 color += beta * radiance;
+                return color;
             }
         }
 
