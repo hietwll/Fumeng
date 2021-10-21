@@ -113,8 +113,6 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
         return black;
     }
 
-    return red;
-
     // calculate bsdf
     auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
     if (glm::length(bsdf_f) < eps) {
@@ -129,8 +127,8 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
 
     // get PowerHeuristic weight for light
     auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
-    auto f = bsdf_f * AbsDot(light_sample.wi_w, hitPoint.ng);
-    return f * light_sample.radiance * weight / light_sample.pdf;
+    auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
+    return f / light_sample.pdf; //* weight
 }
 
 /*
