@@ -65,7 +65,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             for(auto& light : scene.GetLights()) {
                 direct += beta * MisLight(scene, light, hitPoint);
             }
-            //direct += beta * MisBSDF(scene, hitPoint);
+            direct += beta * MisBSDF(scene, hitPoint);
         }
 
         color += direct / static_cast<real>(direct_loop);
@@ -128,7 +128,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
     // get PowerHeuristic weight for light
     auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
     auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
-    return f / light_sample.pdf; //* weight
+    return f / light_sample.pdf * weight;
 }
 
 /*
@@ -172,7 +172,7 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
     auto lightPdf = light->Pdf(r.ori, lightHit.pos, lightHit.ng, light_to_shd);
     auto f = bsdf_sample.f * radiance * AbsDot(hitPoint.ng, r.dir);
     auto weight = PowerHeuristic(bsdf_sample.pdf, lightPdf);
-    return f / bsdf_sample.pdf; // * weight
+    return f / bsdf_sample.pdf * weight;
 }
 
 SP<Renderer> CreatePathTracingRenderer(int w, int h)
