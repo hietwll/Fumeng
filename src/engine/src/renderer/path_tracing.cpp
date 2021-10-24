@@ -82,14 +82,14 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         // generate new ray
         r = hitPoint.GenRay(bsdf_sample.wi_w);
 
-//        // apply RR strategy
-//        if(depth > rr_depth)
-//        {
-//            if (sampler.Get1D() > rr_coef) {
-//                break;
-//            }
-//            beta /= rr_coef;
-//        }
+        // apply RR strategy
+        if(depth > rr_depth)
+        {
+            if (sampler.Get1D() > rr_coef) {
+                break;
+            }
+            beta /= rr_coef;
+        }
     }
     return color;
 }

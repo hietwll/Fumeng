@@ -10,38 +10,55 @@
 
 using namespace fumeng::engine;
 
+SP<const RenderObject> CreateObj(float radius, vec3 pos, vec3 diffuse_color,vec3 emission = black)
+{
+    SP<const Material> material = CreateLambertDiffuse(diffuse_color);
+    auto trs = Transform(pos, black, white);
+    SP<const Geometry> sphere = CreateSphere(radius, trs);
+    SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, emission);
+    return renderObject;
+}
+
 int main()
 {
-    real aspect_ratio = 16.0 / 9.0;
-    int width = 600;
+    // camera
+    real aspect_ratio = 1024_r / 768.0_r;
+    int width = 1024;
+    SP<const Camera> camera = CreatePinPoleCamera(vec3 (50.0_r, 52.0_r, 295.6_r),
+                                                  glm::normalize(vec3(0.0_r, -0.042612_r, -1.0_r)),
+                                            vec3(0.0, 1.0, 0.0_r),
+                                            1.0_r, DegToRad(54.0_r), aspect_ratio);
 
-    SP<const Geometry> sphere = CreateSphere(1.0_r, Transform(mat4(1.0_r)));
-    SP<const Camera> camera = CreatePinPoleCamera(vec3(0.0, 15.0_r, 0.0),
-                                            vec3(0.0, -1.0_r, 0.0),
-                                            vec3(0.0, 0.0, 1.0_r),
-                                            1.0_r, DegToRad(25.0_r), aspect_ratio);
-    SP<const Material> material = CreateLambertDiffuse(vec3(1.0, 0.0_r, 0.0));
-    SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, vec3(0.0, 0.0, 0.0));
-
-    auto trans2 = Transform(vec3(500.0_r, 0.0_r, 0.0_r), black, white);
-    SP<const Geometry> sphere2 = CreateSphere(450.0_r, trans2);
-    SP<const Material> material2 = CreateLambertDiffuse(vec3(1.0, 1.0_r, 1.0));
-    auto renderObject2 = CreateRenderObject(sphere2, material2, vec3(1.0, 1.0, 1.0));
-
-    auto trans3 = Transform(vec3(2.5_r, 0.0_r, 2.5_r), black, white);
-    SP<const Geometry> sphere3 = CreateSphere(1.0_r, trans3);
-    SP<const Material> material3 = CreateLambertDiffuse(vec3(1.0, 1.0_r, 1.0));
-    auto renderObject3 = CreateRenderObject(sphere3, material3, vec3(0.0, 0.0, 0.0));
-
+    // objects
     std::vector<SP<const RenderObject>> objects;
-    objects.push_back(renderObject);
-    objects.push_back(renderObject2);
-    objects.push_back(renderObject3);
+
+    // left
+    auto left = CreateObj(1e5_r, vec3(1e5_r + 1.0_r, 40.8_r, 81.6_r), vec3(0.75_r, 0.25_r, 0.25_r));
+    auto right = CreateObj(1e5_r, vec3(-1e5_r + 99.0_r, 40.8_r, 81.6_r), vec3(0.25_r, 0.75_r, 0.75_r));
+    auto back = CreateObj(1e5_r, vec3(50.0_r, 40.8_r, 1e5_r), vec3(0.75_r, 0.75_r, 0.75_r));
+    auto front = CreateObj(1e5_r, vec3(50.0_r,  40.8_r, -1e5_r + 170.0_r), vec3(0.0_r, 0.0_r, 0.0_r));
+    auto bottom = CreateObj(1e5_r, vec3(50.0_r, 1e5_r, 81.6_r), vec3(0.75_r, 0.75_r, 0.75_r));
+    auto top = CreateObj(1e5_r, vec3(50.0_r, -1e5_r + 81.6_r, 81.6_r), vec3(0.75_r, 0.75_r, 0.75_r));
+
+    auto mid_a = CreateObj(16.5_r, vec3(27.0_r, 16.5_r, 47.0_r), white);
+    auto mid_b = CreateObj(16.5_r, vec3(73.0_r, 16.5_r, 78.0_r), red);
+
+    auto light = CreateObj(600.0_r, vec3(50.0_r, 681.6_r - 0.27_r, 81.6_r), white, white);
+
+    objects.push_back(left);
+    objects.push_back(right);
+    objects.push_back(back);
+    objects.push_back(front);
+    objects.push_back(bottom);
+    objects.push_back(top);
+//    objects.push_back(mid_a);
+//    objects.push_back(mid_b);
+    objects.push_back(light);
 
     SP<const Aggregate> aggregate = CreateSimpleAggregate(objects);
     SP<Scene> scene = CreateSimpleScene(camera, aggregate);
 
-    SP<Renderer> renderer = CreatePathTracingRenderer(width, width / aspect_ratio);
+    SP<Renderer> renderer = CreatePathTracingRenderer(width, int(real(width) / aspect_ratio));
     renderer.get()->DrawFrame(*scene.get());
 
     return 0;

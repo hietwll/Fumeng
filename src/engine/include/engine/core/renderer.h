@@ -16,10 +16,10 @@ protected:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 10; // samples per pixel
-    int depth = 8; // loop times for path tracing render
+    int spp = 1; // samples per pixel
+    int depth = 1; // loop times for path tracing render
     int direct_loop = 10; // loop times for direct lighting
-    int rr_depth = 4; // when to apply Russian roulette
+    int rr_depth = 5; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
 
     Sampler sampler;
