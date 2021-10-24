@@ -40,7 +40,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             if (idx_depth == 1) {
                 return black;
             }
-            break;
+            return color;
         }
 
         // if first hit an emissive object
@@ -67,22 +67,21 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             }
             direct += beta * MisBSDF(scene, hitPoint);
         }
-
         color += direct / static_cast<real>(direct_loop);
 
         // sample BSDF
-//        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
-//        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
-//            break;
-//        }
-//
-//        // update beta coefficient
-//        const real abscos = std::abs(glm::dot(hitPoint.ng, bsdf_sample.wi_w));
-//        beta *= bsdf_sample.f * abscos / bsdf_sample.pdf;
-//
-//        // generate new ray
-//        r = hitPoint.GenRay(bsdf_sample.wi_w);
-//
+        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
+            break;
+        }
+
+        // update beta coefficient
+        const real abscos = AbsDot(hitPoint.ng, bsdf_sample.wi_w);
+        beta *= bsdf_sample.f * abscos / bsdf_sample.pdf;
+
+        // generate new ray
+        r = hitPoint.GenRay(bsdf_sample.wi_w);
+
 //        // apply RR strategy
 //        if(depth > rr_depth)
 //        {

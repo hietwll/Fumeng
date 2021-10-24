@@ -66,6 +66,11 @@ public:
 
         const vec3 ref_to_light = geom_sample.pos - hit_point.pos;
         const real dist = glm::length(ref_to_light);
+
+        if (dist < eps) {
+            return {black, black, black, black, 0.0_r, 0.0_r};
+        }
+
         const vec3 wi = glm::normalize(ref_to_light);
         const real pdf_solid_angle = pdf_area * dist * dist / AbsDot(geom_sample.ng, -wi);
 
