@@ -18,7 +18,7 @@ protected:
     int height = 1;
     int spp = 10; // samples per pixel
     int depth = 6; // loop times for path tracing render
-    int direct_loop = 10; // loop times for direct lighting
+    int direct_loop = 5; // loop times for direct lighting
     int rr_depth = 3; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
 
@@ -34,17 +34,19 @@ public:
     {
         const real res_x = real(width);
         const real res_y = real(height);
+        const real pixel_count = real(width * height);
+        int done_count = 0;
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
             {
+                spdlog::info(" current progress is : {}", done_count++ / pixel_count);
                 image(i,j) = black;
                 for(int k = 0; k < spp; k++) {
                     const vec2 film_sample = sampler.Get2D();
                     const real px = (i + film_sample.x) / res_x;
                     const real py = (j + film_sample.y) / res_y;
                     Ray camera_ray = scene.GetCamera()->SampleRay({px, py});
-                    Ray test_ray(vec3(0.0_r, 15.0_r, 0.0_r), vec3(0.0_r, -1.0_r, 0.0_r));
                     image(i,j) += RenderPixel(scene, camera_ray);
                 }
                 image(i,j) /= spp;

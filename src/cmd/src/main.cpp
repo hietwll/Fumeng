@@ -10,7 +10,7 @@
 
 using namespace fumeng::engine;
 
-SP<const RenderObject> CreateObj(float radius, vec3 pos, vec3 diffuse_color,vec3 emission = black)
+SP<const RenderObject> CreateObj(real radius, vec3 pos, vec3 diffuse_color,vec3 emission = black)
 {
     SP<const Material> material = CreateLambertDiffuse(diffuse_color);
     auto trs = Transform(pos, black, white);
@@ -23,7 +23,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 768.0_r;
-    int width = 1024;
+    int width = 256;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
                                                   vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
@@ -34,7 +34,7 @@ int main()
 
     // left
     auto left = CreateObj(1e5_r, vec3(-1e5_r - 2.0_r, 0.0_r, 0.0_r), vec3(0.75_r, 0.25_r, 0.25_r));
-    auto right = CreateObj(1e5_r, vec3(1e5_r + 2.0_r, 0.0_r, 0.0_r), vec3(0.25_r, 0.75_r, 0.75_r));
+    auto right = CreateObj(1e5_r, vec3(1e5_r + 2.0_r, 0.0_r, 0.0_r), vec3(0.25_r, 0.25_r, 0.75_r));
     auto back = CreateObj(1e5_r, vec3(0.0_r, -1e5_r - 2.0_r, 0.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto front = CreateObj(1e5_r, vec3(0.0_r, 1e5_r + 2.0_r, 0.0_r), vec3(0.0_r, 0.0_r, 0.0_r));
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
@@ -43,7 +43,7 @@ int main()
     auto mid_a = CreateObj(0.5_r, vec3(-1.0_r, -1.0_r, 1.5_r), white);
     auto mid_b = CreateObj(0.5_r, vec3(0.5_r, 0.25_r, 1.5_r), red);
 
-    auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 15.0_r);
+    auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
 
     objects.push_back(left);
     objects.push_back(right);

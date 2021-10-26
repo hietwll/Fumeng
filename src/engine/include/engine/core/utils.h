@@ -109,6 +109,18 @@ inline real PowerHeuristic(real f, real g)
     return (f * f) / (f * f + g * g);
 }
 
+inline void Clip(real& val, real bd_max, real bd_min)
+{
+    val = val > bd_max ? bd_max : (val < bd_min ? bd_min : val);
+}
+
+inline void Clip(vec3& color, real bd_max = 1.0_r, real bd_min = 0.0_r)
+{
+    Clip(color.x, bd_max, bd_min);
+    Clip(color.y, bd_max, bd_min);
+    Clip(color.z, bd_max, bd_min);
+}
+
 FM_ENGINE_END
 
 #endif

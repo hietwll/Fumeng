@@ -40,7 +40,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             if (idx_depth == 1) {
                 return black;
             }
-            return color;
+            break;
         }
 
         // if first hit an emissive object
@@ -51,7 +51,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
                 auto light = hitPoint.object->GetLight();
                 auto radiance = light->GetRadiance(hitPoint.pos, hitPoint.ng, hitPoint.uv, hitPoint.wo_r_w);
                 color += beta * radiance;
-                return color;
+                break;
             }
         }
 
@@ -91,6 +91,9 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             beta /= rr_coef;
         }
     }
+
+    Clip(color);
+
     return color;
 }
 
