@@ -16,10 +16,10 @@ protected:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 10; // samples per pixel
-    int depth = 6; // loop times for path tracing render
+    int spp = 50; // samples per pixel
+    int depth = 10; // loop times for path tracing render
     int direct_loop = 5; // loop times for direct lighting
-    int rr_depth = 3; // when to apply Russian roulette
+    int rr_depth = 5; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
 
     Sampler sampler;
@@ -38,9 +38,11 @@ public:
         int done_count = 0;
 
         for (int i = 0; i < width; i++)
+        {
+            spdlog::info(" current progress is : {}", done_count / pixel_count);
             for (int j = 0; j < height; j++)
             {
-                spdlog::info(" current progress is : {}", done_count++ / pixel_count);
+                done_count++;
                 image(i,j) = black;
                 for(int k = 0; k < spp; k++) {
                     const vec2 film_sample = sampler.Get2D();
@@ -51,6 +53,7 @@ public:
                 }
                 image(i,j) /= spp;
             }
+        }
         image.save_to_file("test.png");
     }
 
