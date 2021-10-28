@@ -171,8 +171,14 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
         return black;
     }
 
-    auto lightPdf = light->Pdf(r.ori, lightHit.pos, lightHit.ng, light_to_shd);
     auto f = bsdf_sample.f * radiance * AbsDot(hitPoint.ng, r.dir);
+
+    // if bsdf is delta, then don't use MIS, just sample the bsdf
+    if (bsdf_sample.is_delta) {
+        return f / bsdf_sample.pdf;
+    }
+
+    auto lightPdf = light->Pdf(r.ori, lightHit.pos, lightHit.ng, light_to_shd);
     auto weight = PowerHeuristic(bsdf_sample.pdf, lightPdf);
     return f / bsdf_sample.pdf * weight;
 }
