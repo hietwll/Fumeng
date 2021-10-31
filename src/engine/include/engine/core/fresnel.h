@@ -16,11 +16,11 @@ public:
 class DielectricFresnel : public Fresnel
 {
 private:
-    real eta_i, eta_o;
+    real eta_i, eta_t;
 
 public:
-    DielectricFresnel(real eta_in, real eta_out)
-    : eta_i(eta_in), eta_o(eta_out)
+    DielectricFresnel(real eta_i_, real eta_t_)
+    : eta_i(eta_i_), eta_t(eta_t_)
     {
     };
 
@@ -30,7 +30,7 @@ public:
     vec3 CalFr(real cos_i) const override
     {
         real eta_in = eta_i; // incident media
-        real eta_out = eta_o; // transmitted media
+        real eta_out = eta_t; // transmitted media
         if(cos_i < 0)
         {
             std::swap(eta_in, eta_out); // incident ray is on the inside
@@ -55,6 +55,16 @@ public:
 
         return {fr, fr, fr};
     };
+
+    real EtaI() const
+    {
+        return eta_i;
+    }
+
+    real EtaT() const
+    {
+        return eta_t;
+    }
 };
 
 class ConductorFresnel : public Fresnel

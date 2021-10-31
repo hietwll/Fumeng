@@ -19,9 +19,18 @@ SP<const RenderObject> CreateObj(real radius, vec3 pos, vec3 diffuse_color,vec3 
     return renderObject;
 }
 
-SP<const RenderObject> CreateObjFresnel(real radius, const vec3& pos, const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
+SP<const RenderObject> CreateMirror(real radius, const vec3& pos, const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
 {
     SP<const Material> material = CreateSpecularReflection(color, eta_i, eta_t, k);
+    auto trs = Transform(pos, black, white);
+    SP<const Geometry> sphere = CreateSphere(radius, trs);
+    SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, black);
+    return renderObject;
+}
+
+SP<const RenderObject> CreateGlass(real radius, const vec3& pos, const vec3& color, const real eta_i, const real eta_t)
+{
+    SP<const Material> material = CreateSpecularTransmission(color, color, eta_i, eta_t);
     auto trs = Transform(pos, black, white);
     SP<const Geometry> sphere = CreateSphere(radius, trs);
     SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, black);
@@ -32,7 +41,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 768.0_r;
-    int width = 1024;
+    int width = 512;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
                                                   vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
@@ -49,11 +58,11 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateObjFresnel(0.5_r, vec3(-1.0_r, -1.0_r, 1.5_r),
+    auto mid_a = CreateMirror(0.5_r, vec3(-1.0_r, -1.0_r, 1.5_r),
                                   vec3(0.9, 0.9, 0.9), white,
                                   vec3(1.4_r, 1.4_r, 1.4_r),
                                   vec3(3.9_r, 3.9_r, 3.9_r));
-    auto mid_b = CreateObj(0.5_r, vec3(0.5_r, 0.25_r, 1.5_r), red);
+    auto mid_b = CreateGlass(0.5_r, vec3(0.5_r, 0.25_r, 1.5_r), vec3(0.93_r), 1.0_r, 1.5_r);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
 
