@@ -32,8 +32,8 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 768.0_r;
-    int width = 1024;
-    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
+    int width = 512;
+    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 4.0_r, 0.0_r),
                                                   vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
                                             1.0_r, DegToRad(45.0_r), aspect_ratio);
@@ -49,7 +49,7 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateObjFresnel(0.5_r, vec3(-1.0_r, -1.0_r, 1.5_r), white, 1.0_r, 1.3_r);
+    auto mid_a = CreateObjFresnel(0.5_r, vec3(0.5_r, 0.0_r, 0.0_r), white, 1.0_r, 1.0_r);
     auto mid_b = CreateObj(0.5_r, vec3(0.5_r, 0.25_r, 1.5_r), red);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);

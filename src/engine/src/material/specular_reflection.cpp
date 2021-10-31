@@ -41,8 +41,8 @@ class SpecularReflection : public Material
 {
 private:
     vec3 albedo;
-    real eta_i;
-    real eta_o;
+    real eta_i; // incident media
+    real eta_o; // transmitted (reflected) media
 public:
     SpecularReflection(const vec3& color, real eta_in, real eta_out) : albedo(color), eta_i(eta_in), eta_o(eta_out)
     {

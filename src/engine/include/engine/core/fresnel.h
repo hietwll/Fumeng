@@ -29,8 +29,8 @@ public:
      */
     vec3 CalFr(real cos_i) const override
     {
-        real eta_in = eta_i;
-        real eta_out = eta_o;
+        real eta_in = eta_i; // incident media
+        real eta_out = eta_o; // transmitted media
         if(cos_i < 0)
         {
             std::swap(eta_in, eta_out); // incident ray is on the inside
@@ -38,7 +38,7 @@ public:
         }
 
         const real sin_i = std::sqrt((std::max)(0.0_r, 1.0_r - cos_i * cos_i));
-        const real sin_t = eta_out / eta_in * sin_i;
+        const real sin_t = eta_in / eta_out * sin_i;
 
         if(sin_t >= 1.0_r) {
             return {1.0_r, 1.0_r, 1.0_r};
@@ -46,9 +46,9 @@ public:
 
         const real cos_t = std::sqrt((std::max)(0.0_r, 1.0_r - sin_t * sin_t));
 
-        const real parallel = (eta_in * cos_i - eta_out * cos_t)
+        const real perpendicular = (eta_in * cos_i - eta_out * cos_t)
                 / (eta_in * cos_i + eta_out * cos_t);
-        const real perpendicular = (eta_out * cos_i - eta_in * cos_t)
+        const real parallel = (eta_out * cos_i - eta_in * cos_t)
                 / (eta_out * cos_i + eta_in * cos_t);
 
         const real fr = (parallel * parallel + perpendicular * perpendicular) * 0.5_r;
