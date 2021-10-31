@@ -61,11 +61,9 @@ class ConductorFresnel : public Fresnel
 {
 private:
     vec3 eta2, etak2;
-    vec3 color;
 
 public:
-    ConductorFresnel(const vec3& eta_i, const vec3& eta_t, const vec3& k, const vec3& albedo)
-    : color(albedo)
+    ConductorFresnel(const vec3& eta_i, const vec3& eta_t, const vec3& k)
     {
         eta2 = eta_t / eta_i;
         eta2 *= eta2;
@@ -97,7 +95,7 @@ public:
         const vec3 t4 = t2 * sin2;
         const vec3 rp = rs * (t3 - t4) / (t3 + t4);
 
-        return (rp + rs) * color * 0.5_r;
+        return (rp + rs) * 0.5_r;
     };
 };
 

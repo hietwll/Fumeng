@@ -41,23 +41,25 @@ class SpecularReflection : public Material
 {
 private:
     vec3 albedo;
-    real eta_i; // incident media
-    real eta_o; // transmitted (reflected) media
+    vec3 eta_i_; // incident media
+    vec3 eta_t_; // transmitted (reflected) media
+    vec3 k_; // absorption coefficient
 public:
-    SpecularReflection(const vec3& color, real eta_in, real eta_out) : albedo(color), eta_i(eta_in), eta_o(eta_out)
+    SpecularReflection(const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
+    : albedo(color), eta_i_(eta_i), eta_t_(eta_t), k_(k)
     {
     };
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        auto fresnel = MakeSP<DielectricFresnel>(eta_i, eta_o);
+        auto fresnel = MakeSP<ConductorFresnel>(eta_i_, eta_t_, k_);
         hit_point.bsdf = MakeSP<SpecularReflectionBSDF>(hit_point, albedo, fresnel);
     };
 };
 
-SP<Material> CreateSpecularReflection(const vec3& color, real eta_in, real eta_out)
+SP<Material> CreateSpecularReflection(const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
 {
-    return MakeSP<SpecularReflection>(color, eta_in, eta_out);
+    return MakeSP<SpecularReflection>(color, eta_i, eta_t, k);
 }
 
 FM_ENGINE_END

@@ -7,7 +7,7 @@ FM_ENGINE_BEGIN
 
 SP<Material> CreateLambertDiffuse(const vec3& color);
 
-SP<Material> CreateSpecularReflection(const vec3& color, real eta_in, real eta_out);
+SP<Material> CreateSpecularReflection(const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k);
 
 FM_ENGINE_END
 
