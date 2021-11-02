@@ -53,7 +53,7 @@ public:
 
             real pdf = fr;
             real cos_i = CosDir(wi);
-            vec3 f = fresnel->CalFr(cos_i) * refract_color / std::abs(cos_i);
+            vec3 f = fresnel->CalFr(cos_i) * reflect_color / std::abs(cos_i);
             return {f, ShadingToWorld(wi), pdf, true};
         }
 
@@ -90,7 +90,7 @@ private:
     real eta_t_; // transmitted (reflected) media
 public:
     SpecularTransmission(const vec3& reflect_color_, const vec3& refract_color_, const real eta_i, const real eta_t)
-    : reflect_color(reflect_color_), refract_color(refract_color), eta_i_(eta_i), eta_t_(eta_t)
+    : reflect_color(reflect_color_), refract_color(refract_color_), eta_i_(eta_i), eta_t_(eta_t)
     {
     };
 
