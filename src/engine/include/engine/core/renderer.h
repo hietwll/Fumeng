@@ -7,7 +7,7 @@
 #include <engine/core/scene.h>
 #include <engine/core/camera.h>
 #include <engine/core/ray.h>
-#include <engine/core/thread_pool.h>
+#include <thread_pool.hpp>
 
 FM_ENGINE_BEGIN
 
@@ -36,13 +36,12 @@ public:
         const real res_x = real(width);
         const real res_y = real(height);
 
-        ThreadPool threadPool(thread_num);
-        threadPool.init();
+        thread_pool threadPool(thread_num);
 
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
             {
-                auto exec = [&](){
+                threadPool.push_task([i, j, &scene, &res_x, &res_y, this]{
                     image(i,j) = black;
                     for(int k = 0; k < spp; k++) {
                         const vec2 film_sample = sampler.Get2D();
@@ -52,22 +51,10 @@ public:
                         image(i,j) += RenderPixel(scene, camera_ray);
                     }
                     image(i,j) /= spp;
-                };
-
-                threadPool.submit(exec);
+                });
             }
 
-        bool loop = true;
-
-        while (loop) {
-            int size = threadPool.size();
-            spdlog::info(" current size is {}.", size);
-            if (size == 0) {
-                loop = false;
-            }
-        }
-
-        threadPool.shutdown();
+        threadPool.wait_for_tasks();
 
         image.save_to_file("test.png");
     }

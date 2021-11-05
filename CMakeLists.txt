@@ -11,5 +11,6 @@ PROJECT(Fumeng)
 
 ADD_SUBDIRECTORY(thirdparty/glm)
 ADD_SUBDIRECTORY(thirdparty/spdlog)
+ADD_SUBDIRECTORY(thirdparty/thread_pool)
 ADD_SUBDIRECTORY(src/engine)
 ADD_SUBDIRECTORY(src/cmd)
