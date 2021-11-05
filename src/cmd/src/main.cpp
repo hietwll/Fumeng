@@ -41,7 +41,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 768.0_r;
-    int width = 1024;
+    int width = 100;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
                                                   vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
@@ -62,7 +62,7 @@ int main()
                                   vec3(0.9, 0.9, 0.9), white,
                                   vec3(1.4_r, 1.4_r, 1.4_r),
                                   vec3(3.9_r, 3.9_r, 3.9_r));
-    auto mid_b = CreateGlass(0.5_r, vec3(-1.0_r, -1.0_r, 1.5_r), vec3(0.93_r), 1.0_r, 1.5_r);
+    auto mid_b = CreateGlass(0.5_r, vec3(0.0_r, 0.0_r, 0.0_r), vec3(0.93_r), 1.0_r, 1.5_r);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
 
