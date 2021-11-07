@@ -17,12 +17,13 @@ protected:
     Image image;
     int width = 1;
     int height = 1;
-    int spp = 40; // samples per pixel
-    int depth = 5; // loop times for path tracing render
+    int spp = 100; // samples per pixel
+    int depth = 10; // loop times for path tracing render
     int direct_loop = 1; // loop times for direct lighting
-    int rr_depth = 5; // when to apply Russian roulette
+    int rr_depth = 10; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
-    int thread_num = 4;
+    int thread_num = 8;
+    std::string output_name = "test.png";
     Sampler sampler;
 
 public:
@@ -35,9 +36,12 @@ public:
     {
         const real res_x = real(width);
         const real res_y = real(height);
+        const real total_tasks = res_x * res_y;
 
+        // create thread pool
         thread_pool threadPool(thread_num);
 
+        // submit job
         for (int i = 0; i < width; i++)
             for (int j = 0; j < height; j++)
             {
@@ -54,9 +58,26 @@ public:
                 });
             }
 
-        threadPool.wait_for_tasks();
+        // check progress
+        bool finished = false;
+        real percent = 0.0f;
+        while (!finished) {
+            // check every second
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+            auto remain_tasks = threadPool.get_tasks_total();
 
-        image.save_to_file("test.png");
+            // print and save
+            real new_percent = 1.0 - remain_tasks / total_tasks;
+            finished = remain_tasks == 0;
+            spdlog::info("Current progress is : {:03.2f}", new_percent);
+            if (new_percent - percent > 0.1_r || finished) {
+                threadPool.paused = true;
+                threadPool.wait_for_tasks();
+                image.save_to_file(output_name);
+                threadPool.paused = false;
+                percent = new_percent;
+            }
+        }
     }
 
     virtual vec3 RenderPixel(Scene& scene, Ray& ray) const
