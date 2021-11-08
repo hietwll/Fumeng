@@ -58,11 +58,11 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateMirror(0.5_r, vec3(0.5_r, 0.25_r, 1.5_r),
-                                  vec3(0.9, 0.9, 0.9), white,
+    auto mid_a = CreateMirror(0.5_r, vec3(-0.5_r, -0.5_r, 1.5_r),
+                                  vec3(0.95, 0.95, 0.95), white,
                                   vec3(1.4_r, 1.4_r, 1.4_r),
                                   vec3(3.9_r, 3.9_r, 3.9_r));
-    auto mid_b = CreateGlass(0.5_r, vec3(0.0_r, 0.0_r, 0.0_r), vec3(0.93_r), 1.0_r, 1.5_r);
+    auto mid_b = CreateGlass(0.5_r, vec3(0.5_r, 0.5_r, 1.5_r), vec3(0.99_r), 1.0_r, 3.0_r);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
 
