@@ -44,6 +44,26 @@ public:
      * get the pdf of given position
      */
     virtual real Pdf(const vec3& ref_pos, const vec3& pos, const vec3& nor, const vec3& light_to_out) const = 0;
+
+    /**
+     * approximation of power. some algorithms may devote additional computational resources to lights making
+     * largest contribution
+     */
+     virtual vec3 GetPower() const
+     {
+         return black;
+     };
+
+     /**
+      * get the radiance of the light
+      *
+      * @param pos position on the light source
+      * @param nor normal of the light source at position
+      * @param uv uv coordinate
+      * @param light_to_shd direction vector from shading point to point on light source
+      * @return radiance
+      */
+     virtual vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const = 0;
 };
 
 class AreaLight : public Light
@@ -82,7 +102,7 @@ public:
         return false;
     }
 
-    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const
+    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override
     {
         return glm::dot(nor, light_to_shd) > 0 ? radiance : black;
     }

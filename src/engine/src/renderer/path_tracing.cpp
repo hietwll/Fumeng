@@ -92,8 +92,6 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         }
     }
 
-    Clip(color);
-
     return color;
 }
 

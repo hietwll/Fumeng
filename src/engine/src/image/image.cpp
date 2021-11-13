@@ -1,6 +1,7 @@
 #include <engine/core/image.h>
 
 #include <algorithm>
+#include <engine/core/utils.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -74,9 +75,9 @@ void Image::save_to_file(const std::string& filename)
 	for (size_t j = 0; j < height_; j++)
 		for (size_t i = 0; i < width_; i++)
 		{
-			raw_data[idx++] = static_cast<uint8_t> (255.0 * std::pow(data_[j * width_ + i].x, 1.0 / 2.2));
-			raw_data[idx++] = static_cast<uint8_t> (255.0 * std::pow(data_[j * width_ + i].y, 1.0 / 2.2));
-			raw_data[idx++] = static_cast<uint8_t> (255.0 * std::pow(data_[j * width_ + i].z, 1.0 / 2.2));
+		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].x));
+		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].y));
+		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].z));
 		}
 
 	stbi_write_png(filename.c_str(), width_, height_, channel_num_, raw_data, width_ * channel_num_);
