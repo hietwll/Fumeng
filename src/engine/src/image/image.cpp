@@ -60,6 +60,11 @@ vec3& Image::operator()(size_t w_idx, size_t h_idx)
 	return data_[h_idx * width_ + w_idx];
 }
 
+vec3 Image::operator()(size_t w_idx, size_t h_idx) const
+{
+    return data_[h_idx * width_ + w_idx];
+}
+
 void Image::fill(const vec3& val)
 {
 	for (size_t i = 0; i < pixel_count_; i++)
@@ -99,6 +104,16 @@ void Image::load_from_file(const std::string& filename)
 			data_[j * width_ + i].y = static_cast<real> (raw_data[idx++] / 255.0);
 			data_[j * width_ + i].z = static_cast<real> (raw_data[idx++] / 255.0);
 		}
+}
+
+size_t Image::width() const
+{
+    return width_;
+}
+
+size_t Image::height() const
+{
+    return height_;
 }
 
 FM_ENGINE_END

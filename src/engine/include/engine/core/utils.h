@@ -64,7 +64,8 @@ inline real SquareSum(const vec3& vec)
     return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
 
-inline real Clamp(real v, const real& low, const real& up)
+template<typename T>
+inline T Clamp(T v, const T& low, const T& up)
 {
     return v > up ? up : (v < low ? low : v);
 }
@@ -109,16 +110,11 @@ inline real PowerHeuristic(real f, real g)
     return (f * f) / (f * f + g * g);
 }
 
-inline void Clip(real& val, real bd_max, real bd_min)
+inline void Clamp(vec3& color, real low = 0.0_r, real up = 1.0_r)
 {
-    val = val > bd_max ? bd_max : (val < bd_min ? bd_min : val);
-}
-
-inline void Clip(vec3& color, real bd_max = 1.0_r, real bd_min = 0.0_r)
-{
-    Clip(color.x, bd_max, bd_min);
-    Clip(color.y, bd_max, bd_min);
-    Clip(color.z, bd_max, bd_min);
+    Clamp(color.x, low, up);
+    Clamp(color.y, low, up);
+    Clamp(color.z, low, up);
 }
 
 inline real SRGBToLinear(real color) {
@@ -134,7 +130,7 @@ inline real LinearToSRGB(real color) {
 }
 
 inline uint8_t RealToUInt8(real color) {
-    Clip(color, 1.0_r, 0.0_r);
+    Clamp(color, 0.0_r, 1.0_r);
     return static_cast<uint8_t>(255.0_r * color);
 }
 

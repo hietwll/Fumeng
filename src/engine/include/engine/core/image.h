@@ -23,8 +23,11 @@ public:
     void fill(const vec3& val);
     void swap(Image& img);
     vec3& operator()(size_t w_idx, size_t h_idx);
+    vec3 operator()(size_t w_idx, size_t h_idx) const;
     void save_to_file(const std::string& filename);
     void load_from_file(const std::string& filename);
+    size_t width() const;
+    size_t height() const;
 
     void destroy();
     ~Image();
