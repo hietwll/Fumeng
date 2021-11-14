@@ -10,9 +10,10 @@ struct Sample1DInfo
 {
     real val; // sampled result is between [0, 1]
     real pdf;
+    size_t idx; // idx of the sampled value
 
-    Sample1DInfo(real val_, real pdf_) :
-    val(val_), pdf(pdf_)
+    Sample1DInfo(real val_, real pdf_, size_t idx_) :
+    val(val_), pdf(pdf_), idx(idx_)
     {
     }
 };
@@ -43,6 +44,8 @@ public:
     explicit Distribution1D(std::vector<real>& value);
     Sample1DInfo Sample(real sample) const;
     size_t Size() const;
+    real GetSum() const;
+    real Pdf(size_t idx) const;
 };
 
 /**
@@ -51,8 +54,8 @@ public:
 class Distribution2D
 {
 private:
-    std::vector<UP<Distribution1D>> conditional_v;
-    UP<Distribution1D> marginal_u;
+    std::vector<UP<Distribution1D>> conditional;
+    UP<Distribution1D> marginal;
 
 public:
     using vector2d = std::vector<std::vector<real>>;

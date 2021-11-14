@@ -11,7 +11,8 @@ private:
     Transform light_to_world;
     SP<const EnvImportanceSampler> sampler;
     vec3 mean_radiance; // power
-    real radius = 1.0_r;
+    // todo: calculate world_radius by bounding box size
+    real world_radius = 1.0e6_r;
 
     void CalMeanRadiance()
     {
@@ -45,7 +46,20 @@ public:
 
     LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override
     {
+        const auto info = sampler->Sample(sample);
+        const auto radiance = GetRadiance({}, {}, {}, -info.dir);
+        return {hit_point.pos, hit_point.pos + info.dir * world_radius, -info.dir, radiance, info.pdf, REAL_MAX};
+    }
 
+    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override
+    {
+        const auto sphere_uv = GetSphericalUV(-light_to_shd);
+        return texture->Sample({sphere_uv.x, sphere_uv.y});
+    }
+
+    real Pdf(const vec3& dir) const
+    {
+        return sampler->Pdf(dir);
     }
 };
 

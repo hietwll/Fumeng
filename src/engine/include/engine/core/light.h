@@ -12,10 +12,10 @@ struct LightSampleInfo
 {
     vec3 ref_pos; // position of sampled point in world space
     vec3 light_pos; // position of sampled light in world space
-    vec3 wi_w; // direction of sampled light in world space
+    vec3 wi_w; // direction of sampled light in world space (shading point to light)
     vec3 radiance; // radiance of sampled light
     real pdf = 0.0_r; // pdf of the sampled light w.r.t. solid angle
-    real dist = 0.0_r; // lenght of ref_pos - light_pos
+    real dist = 0.0_r; // length of ref_pos - light_pos
 
     LightSampleInfo(const vec3& r_pos, const vec3& l_pos, const vec3& wi_,
                     const vec3& radiance_, real pdf_, real dist_)

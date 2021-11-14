@@ -39,13 +39,13 @@ Sample1DInfo Distribution1D::Sample(real sample) const
 
     if(delta < eps_pdf || pdf_sum < eps_pdf) {
         spdlog::error("pdf is too small");
-        return {0.0_r, 0.0_r};
+        return {0.0_r, 0.0_r, 0};
     }
 
     const real interp = (sample - cdf[low]) / delta;
     const real sample_val = (interp + low) / size;
     const real pdf = val[low] / pdf_sum;
-    return {sample_val, pdf};
+    return {sample_val, pdf, low};
 }
 
 size_t Distribution1D::BinarySearch(real sample, const std::vector<real>& vec) const
@@ -64,6 +64,19 @@ size_t Distribution1D::BinarySearch(real sample, const std::vector<real>& vec) c
     }
 
     return left;
+}
+
+real Distribution1D::GetSum() const
+{
+    return pdf_sum;
+}
+
+/*
+ * result need to be normalized
+ */
+real Distribution1D::Pdf(size_t idx) const
+{
+    return val[idx];
 }
 
 FM_ENGINE_END
