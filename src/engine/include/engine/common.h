@@ -53,6 +53,7 @@ constexpr real REAL_MIN = std::numeric_limits<real>::min();
 const real PI = (real) 3.14159265354_d;
 const real InvPI = (real) (1.0_d / PI);
 const real eps = 1e-4_r;
+const real eps_pdf = 1e-6_r;
 
 // forward declaration
 class Ray;

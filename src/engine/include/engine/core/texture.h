@@ -14,6 +14,8 @@ private:
     WrapFunc wrap_v = &WrapClamp;
     bool to_linear = true;
 
+    virtual vec3 SampleImpl(const vec2& uv) const = 0;
+
 public:
     static real WrapClamp(real x)
     {
@@ -57,8 +59,6 @@ public:
         }
         return res;
     }
-
-    virtual vec3 SampleImpl(const vec2& uv) const = 0;
 
     virtual size_t width() const = 0;
 

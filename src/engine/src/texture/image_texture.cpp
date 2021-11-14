@@ -41,6 +41,10 @@ private:
         return img(u, v);
     }
 
+    vec3 SampleImpl(const vec2& uv) const override
+    {
+        return sampler(uv, image);
+    }
 
 public:
     ImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
@@ -49,11 +53,6 @@ public:
     {
         image.load_from_file(img_path_);
         InitSampler(sample_name, sampler);
-    }
-
-    vec3 SampleImpl(const vec2& uv) const override
-    {
-        return sampler(uv, image);
     }
 
     static void InitSampler(std::string& sample_name, SampleFunc & sample_func)

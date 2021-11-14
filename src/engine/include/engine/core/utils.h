@@ -117,13 +117,15 @@ inline void Clamp(vec3& color, real low = 0.0_r, real up = 1.0_r)
     Clamp(color.z, low, up);
 }
 
-inline real SRGBToLinear(real color) {
+inline real SRGBToLinear(real color)
+{
     if (color <= 0.04045_r)
         return color * 1.0_r / 12.92_r;
     return std::pow((color + 0.055_r) * 1.0_r / 1.055_r, (real)2.4_r);
 }
 
-inline real LinearToSRGB(real color) {
+inline real LinearToSRGB(real color)
+{
     if (color <= 0.0031308_r)
         return 12.92_r * color;
     return 1.055f * std::pow(color, (real)(1.0_r / 2.4_r)) - 0.055_r;
@@ -132,6 +134,11 @@ inline real LinearToSRGB(real color) {
 inline uint8_t RealToUInt8(real color) {
     Clamp(color, 0.0_r, 1.0_r);
     return static_cast<uint8_t>(255.0_r * color);
+}
+
+inline float RGBToLuminance(const vec3& color)
+{
+    return 0.2126_r * color.x + 0.7152_r * color.y + 0.0722_r * color.z;
 }
 
 FM_ENGINE_END
