@@ -1,4 +1,7 @@
 #include <engine/core/material.h>
+#include <engine/core/texture.h>
+
+#include <utility>
 
 FM_ENGINE_BEGIN
 
@@ -25,19 +28,20 @@ vec3 LambertDiffuseBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 class LambertDiffuse : public Material
 {
 private:
-    vec3 albedo;
+    SP<Texture> color;
 public:
-    LambertDiffuse(const vec3& color) : albedo(color)
+    explicit LambertDiffuse(SP<Texture> color_) : color(color_)
     {
     };
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        hit_point.bsdf = MakeSP<LambertDiffuseBSDF>(hit_point, albedo);
+        const vec3 sampled_color = color->Sample(hit_point.uv);
+        hit_point.bsdf = MakeSP<LambertDiffuseBSDF>(hit_point, sampled_color);
     };
 };
 
-SP<Material> CreateLambertDiffuse(const vec3& color)
+SP<Material> CreateLambertDiffuse(const SP<Texture>& color)
 {
     return MakeSP<LambertDiffuse>(color);
 }

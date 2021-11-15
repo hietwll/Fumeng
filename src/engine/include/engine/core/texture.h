@@ -12,7 +12,7 @@ private:
     using WrapFunc = real(*)(real);
     WrapFunc wrap_u = &WrapClamp;
     WrapFunc wrap_v = &WrapClamp;
-    bool to_linear = true;
+    bool to_linear = false;
 
     virtual vec3 SampleImpl(const vec2& uv) const = 0;
 
@@ -26,6 +26,8 @@ public:
     {
         return Clamp(x - std::floor(x), 0.0_r, 1.0_r);
     }
+
+    Texture() = default;
 
     Texture(std::string& wrap_u_, std::string& wrap_v_, bool to_linear_) :
     to_linear(to_linear_)

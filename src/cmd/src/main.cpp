@@ -5,14 +5,24 @@
 #include <engine/create/aggregate.h>
 #include <engine/create/renderer.h>
 #include <engine/create/scene.h>
+#include <engine/create/texture.h>
 
 #include <vector>
 
 using namespace fumeng::engine;
 
-SP<const RenderObject> CreateObj(real radius, vec3 pos, vec3 diffuse_color,vec3 emission = black)
+SP<const RenderObject> CreateObj(real radius, const vec3& pos, const vec3& diffuse_color, const vec3& emission = black)
 {
-    SP<const Material> material = CreateLambertDiffuse(diffuse_color);
+    SP<const Material> material = CreateLambertDiffuse(CreateConstantTexture(diffuse_color));
+    auto trs = Transform(pos, black, white);
+    SP<const Geometry> sphere = CreateSphere(radius, trs);
+    SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, emission);
+    return renderObject;
+}
+
+SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>& color, const vec3& emission = black)
+{
+    SP<const Material> material = CreateLambertDiffuse(color);
     auto trs = Transform(pos, black, white);
     SP<const Geometry> sphere = CreateSphere(radius, trs);
     SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, emission);
@@ -37,6 +47,14 @@ SP<const RenderObject> CreateGlass(real radius, const vec3& pos, const vec3& col
     return renderObject;
 }
 
+SP<Texture> CreateTexture(std::string path)
+{
+    std::string wrap_mode = "repeat";
+    std::string sample_mode = "nearest";
+
+    return CreateImageTexture(path, wrap_mode, wrap_mode, true, sample_mode);
+}
+
 int main()
 {
     // camera
@@ -50,6 +68,9 @@ int main()
     // objects
     std::vector<SP<const RenderObject>> objects;
 
+    // textures
+    SP<Texture> earth = CreateTexture("earth.png");
+
     // left
     auto left = CreateObj(1e5_r, vec3(-1e5_r - 2.0_r, 0.0_r, 0.0_r), vec3(0.75_r, 0.25_r, 0.25_r));
     auto right = CreateObj(1e5_r, vec3(1e5_r + 2.0_r, 0.0_r, 0.0_r), vec3(0.25_r, 0.25_r, 0.75_r));
@@ -58,10 +79,8 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateMirror(0.5_r, vec3(-0.5_r, -0.5_r, 1.5_r),
-                                  vec3(0.95, 0.95, 0.95), white,
-                                  vec3(1.4_r, 1.4_r, 1.4_r),
-                                  vec3(3.9_r, 3.9_r, 3.9_r));
+    auto mid_a = CreateObj(0.5_r, vec3(-0.5_r, -0.5_r, 1.5_r),
+                           earth, black);
     auto mid_b = CreateGlass(0.5_r, vec3(0.5_r, 0.5_r, 1.5_r), vec3(0.99_r), 1.0_r, 3.0_r);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
