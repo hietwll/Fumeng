@@ -10,14 +10,14 @@ Distribution2D::Distribution2D(vector2d& value, size_t width, size_t height)
 {
     // init conditional pdf
     conditional.resize(height);
-    for (int j = 0; j < height; ++j) {
+    for (size_t j = 0; j < height; ++j) {
         conditional[j] = MakeUP<Distribution1D>(value[j]);
     }
 
     // calculate marginal data
     std::vector<real> marginal_data;
     marginal_data.resize(height);
-    for (int j = 0; j < height; ++j) {
+    for (size_t j = 0; j < height; ++j) {
         marginal_data[j] = conditional[j]->GetSum();
     };
 

@@ -65,7 +65,7 @@ inline real SquareSum(const vec3& vec)
 }
 
 template<typename T>
-inline T Clamp(T v, const T& low, const T& up)
+inline T Clamp(T v, const T low, const T up)
 {
     return v > up ? up : (v < low ? low : v);
 }
@@ -112,9 +112,9 @@ inline real PowerHeuristic(real f, real g)
 
 inline void Clamp(vec3& color, real low = 0.0_r, real up = 1.0_r)
 {
-    Clamp(color.x, low, up);
-    Clamp(color.y, low, up);
-    Clamp(color.z, low, up);
+    color.x = Clamp(color.x, low, up);
+    color.y = Clamp(color.y, low, up);
+    color.z = Clamp(color.z, low, up);
 }
 
 inline real SRGBToLinear(real color)
@@ -132,7 +132,7 @@ inline real LinearToSRGB(real color)
 }
 
 inline uint8_t RealToUInt8(real color) {
-    Clamp(color, 0.0_r, 1.0_r);
+    color = Clamp(color, 0.0_r, 1.0_r);
     return static_cast<uint8_t>(255.0_r * color);
 }
 
