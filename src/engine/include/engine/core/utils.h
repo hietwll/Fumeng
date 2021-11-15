@@ -136,7 +136,7 @@ inline uint8_t RealToUInt8(real color) {
     return static_cast<uint8_t>(255.0_r * color);
 }
 
-inline float RGBToLuminance(const vec3& color)
+inline real RGBToLuminance(const vec3& color)
 {
     return 0.2126_r * color.x + 0.7152_r * color.y + 0.0722_r * color.z;
 }

@@ -31,7 +31,7 @@ public:
         const size_t height = texture->height();
 
         lum.resize(height);
-        for (int j = 0; j < height; ++j) {
+        for (size_t j = 0; j < height; ++j) {
             lum[j].resize(width);
         }
 

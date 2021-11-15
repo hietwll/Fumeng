@@ -10,7 +10,7 @@ Distribution1D::Distribution1D(std::vector<real>& value)
     // calculate cdf
     cdf.resize(size + 1);
     cdf[0] = 0.0_r;
-    for (int i = 1; i < size + 1; i++) {
+    for (size_t i = 1; i < size + 1; i++) {
         cdf[i] = cdf[i - 1] + val[i - 1];
     }
 
@@ -22,7 +22,7 @@ Distribution1D::Distribution1D(std::vector<real>& value)
     }
 
     // normalize cdf
-    for (int i = 0; i < size + 1; i++) {
+    for (size_t i = 0; i < size + 1; i++) {
         cdf[i] /= pdf_sum;
     }
 }

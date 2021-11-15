@@ -66,6 +66,24 @@ public:
      virtual vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const = 0;
 };
 
+class AreaLight : public Light
+{
+private:
+    const Geometry* geometry = nullptr;
+    vec3 radiance;
+
+public:
+    AreaLight(const Geometry* geometry_, const vec3& radiance_);
+
+    LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
+
+    bool IsDelta() const override;
+
+    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override;
+
+    real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
+};
+
 FM_ENGINE_END
 
 #endif
