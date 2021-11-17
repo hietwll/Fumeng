@@ -14,6 +14,7 @@ private:
     size_t height_;
     size_t pixel_count_;
     const size_t channel_num_ = 3;
+    bool hdr = false;
 
 public:
     Image();
@@ -25,7 +26,8 @@ public:
     vec3& operator()(size_t w_idx, size_t h_idx);
     vec3 operator()(size_t w_idx, size_t h_idx) const;
     void save_to_file(const std::string& filename);
-    void load_from_file(const std::string& filename);
+    void load_from_file(const std::string& filename, bool isHDR = false);
+    template<typename T> void fill_data(T* raw, real scale);
     size_t width() const;
     size_t height() const;
 

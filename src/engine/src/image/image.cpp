@@ -75,35 +75,65 @@ void Image::fill(const vec3& val)
 
 void Image::save_to_file(const std::string& filename)
 {
-	uint8_t *raw_data = new uint8_t[pixel_count_ * channel_num_];
-	size_t idx = 0;
-	for (size_t j = 0; j < height_; j++)
-		for (size_t i = 0; i < width_; i++)
-		{
-		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].x));
-		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].y));
-		    raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].z));
-		}
+    if (hdr) {
+        float* raw_data = new float[pixel_count_ * channel_num_];
+        size_t idx = 0;
+        for (size_t j = 0; j < height_; j++)
+            for (size_t i = 0; i < width_; i++)
+            {
+                raw_data[idx++] = static_cast<float>(data_[j * width_ + i].x);
+                raw_data[idx++] = static_cast<float>(data_[j * width_ + i].y);
+                raw_data[idx++] = static_cast<float>(data_[j * width_ + i].z);
+            }
 
-	stbi_write_png(filename.c_str(), width_, height_, channel_num_, raw_data, width_ * channel_num_);
-	delete[] raw_data;
+        stbi_write_hdr(filename.c_str(), width_, height_, channel_num_, raw_data);
+        delete[] raw_data;
+    } else {
+        uint8_t *raw_data = new uint8_t[pixel_count_ * channel_num_];
+        size_t idx = 0;
+        for (size_t j = 0; j < height_; j++)
+            for (size_t i = 0; i < width_; i++)
+            {
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].x);
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].y);
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].z);
+            }
+
+        stbi_write_png(filename.c_str(), width_, height_, channel_num_, raw_data, width_ * channel_num_);
+        delete[] raw_data;
+    }
 }
 
-void Image::load_from_file(const std::string& filename)
+template<typename T>
+void Image::fill_data(T *raw, real scale)
+{
+    size_t idx = 0;
+    for (size_t j = 0; j < height_; j++)
+        for (size_t i = 0; i < width_; i++)
+        {
+            data_[j * width_ + i].x = static_cast<real> (raw[idx++] / scale);
+            data_[j * width_ + i].y = static_cast<real> (raw[idx++] / scale);
+            data_[j * width_ + i].z = static_cast<real> (raw[idx++] / scale);
+        }
+    delete[] raw;
+}
+
+void Image::load_from_file(const std::string& filename, bool isHDR)
 {
 	int width, height, nrChannels;
 	int desired_channels = 3;
-	uint8_t* raw_data = stbi_load(filename.c_str(), &width, &height, &nrChannels, desired_channels);
 
-	resize(width, height);
-	size_t idx = 0;
-	for (size_t j = 0; j < height_; j++)
-		for (size_t i = 0; i < width_; i++)
-		{
-			data_[j * width_ + i].x = static_cast<real> (raw_data[idx++] / 255.0);
-			data_[j * width_ + i].y = static_cast<real> (raw_data[idx++] / 255.0);
-			data_[j * width_ + i].z = static_cast<real> (raw_data[idx++] / 255.0);
-		}
+	hdr = isHDR;
+
+	if (hdr) {
+	    float* raw_data = stbi_loadf(filename.c_str(), &width, &height, &nrChannels, desired_channels);
+	    resize(width, height);
+        fill_data(raw_data, 1.0_r);
+	} else {
+	    uint8_t* raw_data = stbi_load(filename.c_str(), &width, &height, &nrChannels, desired_channels);
+	    resize(width, height);
+        fill_data(raw_data, 255.0_r);
+	}
 }
 
 size_t Image::width() const
