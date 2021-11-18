@@ -51,7 +51,11 @@ public:
                  bool to_linear_, std::string& sample_name)
     : Texture(wrap_u_, wrap_v_, to_linear_)
     {
-        image.load_from_file(img_path_);
+        bool isHDR = false;
+        if (img_path_.find(".hdr") != std::string::npos) {
+            isHDR = true;
+        }
+        image.load_from_file(img_path_, isHDR);
         InitSampler(sample_name, sampler);
     }
 

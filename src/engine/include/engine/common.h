@@ -69,6 +69,7 @@ class RenderObject;
 class Aggregate;
 class Light;
 class AreaLight;
+class EnvLight;
 class Image;
 class Sphere;
 

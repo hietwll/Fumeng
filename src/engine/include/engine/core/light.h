@@ -5,6 +5,7 @@
 #include <engine/core/hit_point.h>
 #include <engine/core/geometry.h>
 #include <engine/core/utils.h>
+#include <engine/core/texture.h>
 
 FM_ENGINE_BEGIN
 
@@ -83,6 +84,34 @@ public:
 
     real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
 };
+
+
+class EnvImportanceSampler;
+
+class EnvLight : public Light
+{
+private:
+    SP<const Texture> texture;
+    Transform light_to_world;
+    SP<const EnvImportanceSampler> sampler;
+    vec3 mean_radiance; // power
+    // todo: calculate world_radius by bounding box size
+    real world_radius = 1.0e6_r;
+
+    void CalMeanRadiance();
+
+public:
+    EnvLight(const SP<const Texture>& texture_);
+    LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
+    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override;
+    real Pdf(const vec3& dir) const;
+    bool IsDelta() const override;
+    real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
+};
+
+
+
+
 
 FM_ENGINE_END
 

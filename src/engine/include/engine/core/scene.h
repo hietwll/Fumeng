@@ -12,6 +12,7 @@ class Scene
 protected:
     SP<const Camera> camera;
     SP<const Aggregate> aggregate;
+    SP<EnvLight> envLight;
     std::vector<SP<const Light>> lights;
 
 public:
@@ -38,6 +39,16 @@ public:
             res.push_back(light.get());
         }
         return res;
+    }
+
+    void SetEnvLight(SP<Light> env_light)
+    {
+        envLight = env_light;
+    }
+
+    EnvLight* GetEnvLight() const
+    {
+        return envLight.get();
     }
 
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const

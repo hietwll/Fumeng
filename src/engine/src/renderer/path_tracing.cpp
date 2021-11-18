@@ -38,6 +38,10 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         {
             // return background color
             if (idx_depth == 1) {
+                auto envLight = scene.GetEnvLight();
+                if (envLight != nullptr) {
+                    return envLight->GetRadiance({}, {}, {}, -ray.dir);
+                }
                 return black;
             }
             break;
