@@ -73,8 +73,9 @@ void Image::fill(const vec3& val)
 	}
 }
 
-void Image::save_to_file(const std::string& filename)
+void Image::save_to_file(const std::string& filename, bool isHDR)
 {
+    hdr = isHDR;
     if (hdr) {
         float* raw_data = new float[pixel_count_ * channel_num_];
         size_t idx = 0;

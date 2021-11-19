@@ -23,9 +23,10 @@ public:
     void resize(size_t w, size_t h);
     void fill(const vec3& val);
     void swap(Image& img);
+    void flip_height();
     vec3& operator()(size_t w_idx, size_t h_idx);
     vec3 operator()(size_t w_idx, size_t h_idx) const;
-    void save_to_file(const std::string& filename);
+    void save_to_file(const std::string& filename, bool isHDR = false);
     void load_from_file(const std::string& filename, bool isHDR = false);
     template<typename T> void fill_data(T* raw, real scale);
     size_t width() const;

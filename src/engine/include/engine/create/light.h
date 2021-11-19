@@ -5,7 +5,7 @@
 
 FM_ENGINE_BEGIN
 
-SP<Light> CreateEnvLight(const SP<const Texture>& texture_);
+SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture_);
 
 FM_ENGINE_END
 

@@ -60,7 +60,7 @@ real EnvLight::Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light
     return 0;
 }
 
-SP<Light> CreateEnvLight(const SP<const Texture>& texture_)
+SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture_)
 {
     return MakeSP<EnvLight>(texture_);
 }

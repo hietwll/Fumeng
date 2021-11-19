@@ -46,15 +46,16 @@ public:
             for (int j = 0; j < height; j++)
             {
                 threadPool.push_task([i, j, &scene, &res_x, &res_y, this]{
-                    image(i,j) = black;
+                    int j_flip = height - 1 - j;
+                    image(i, j_flip) = black;
                     for(int k = 0; k < spp; k++) {
                         const vec2 film_sample = sampler.Get2D();
                         const real px = (i + film_sample.x) / res_x;
                         const real py = (j + film_sample.y) / res_y;
                         Ray camera_ray = scene.GetCamera()->SampleRay({px, py});
-                        image(i,j) += RenderPixel(scene, camera_ray);
+                        image(i, j_flip) += RenderPixel(scene, camera_ray);
                     }
-                    image(i,j) /= spp;
+                    image(i, j_flip) /= spp;
                 });
             }
 
@@ -73,7 +74,7 @@ public:
             if (new_percent - percent > 0.1_r || finished) {
                 threadPool.paused = true;
                 threadPool.wait_for_tasks();
-                image.save_to_file(output_name);
+                image.save_to_file(output_name, false);
                 threadPool.paused = false;
                 percent = new_percent;
             }

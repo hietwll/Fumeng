@@ -53,26 +53,26 @@ SP<Texture> CreateTexture(std::string path)
     std::string wrap_mode = "repeat";
     std::string sample_mode = "nearest";
 
-    return CreateImageTexture(path, wrap_mode, wrap_mode, true, sample_mode);
+    return CreateImageTexture(path, wrap_mode, wrap_mode, false, sample_mode);
 }
 
 int main()
 {
     // camera
-    real aspect_ratio = 1024_r / 768.0_r;
-    int width = 512;
-    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
-                                                  vec3(0.0_r, -1.0_r, 0.0_r),
+    real aspect_ratio = 1024_r / 512.0_r;
+    int width = 2048;
+    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
+                                                  vec3(1.0_r, 0.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
-                                            1.0_r, DegToRad(45.0_r), aspect_ratio);
+                                            1.0_r, DegToRad(60.0_r), aspect_ratio);
 
     // objects
     std::vector<SP<const RenderObject>> objects;
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> hdr = CreateTexture("test.hdr");
-    SP<Light> envLight = CreateEnvLight(hdr);
+    SP<Texture> sky = CreateTexture("sky.png");
+    SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left
     auto left = CreateObj(1e5_r, vec3(-1e5_r - 2.0_r, 0.0_r, 0.0_r), vec3(0.75_r, 0.25_r, 0.25_r));
@@ -82,9 +82,9 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateObj(0.5_r, vec3(-0.5_r, -0.5_r, 1.5_r),
+    auto mid_a = CreateObj(0.5_r, vec3(-100.0_r, -100.0_r, -100.0_r),
                            earth, black);
-    auto mid_b = CreateGlass(0.5_r, vec3(0.5_r, 0.5_r, 1.5_r), vec3(0.99_r), 1.0_r, 3.0_r);
+    auto mid_b = CreateGlass(0.5_r, vec3(-100.0_r, -100.0_r, -100.0_r), vec3(0.99_r), 1.0_r, 3.0_r);
 
     auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
 

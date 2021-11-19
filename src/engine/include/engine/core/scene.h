@@ -41,7 +41,7 @@ public:
         return res;
     }
 
-    void SetEnvLight(SP<Light> env_light)
+    void SetEnvLight(SP<EnvLight> env_light)
     {
         envLight = env_light;
     }
