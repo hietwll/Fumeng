@@ -133,7 +133,7 @@ inline real LinearToSRGB(real color)
 
 inline uint8_t RealToUInt8(real color) {
     color = Clamp(color, 0.0_r, 1.0_r);
-    return static_cast<uint8_t>(255.0_r * color);
+    return static_cast<uint8_t>(round(255.0_r * color));
 }
 
 inline real RGBToLuminance(const vec3& color)
