@@ -12,7 +12,6 @@ private:
     using WrapFunc = real(*)(real);
     WrapFunc wrap_u = &WrapClamp;
     WrapFunc wrap_v = &WrapClamp;
-    bool to_linear = false;
 
     virtual vec3 SampleImpl(const vec2& uv) const = 0;
 
@@ -29,8 +28,7 @@ public:
 
     Texture() = default;
 
-    Texture(std::string& wrap_u_, std::string& wrap_v_, bool to_linear_) :
-    to_linear(to_linear_)
+    Texture(std::string& wrap_u_, std::string& wrap_v_)
     {
         InitWrap(wrap_u_, wrap_u);
         InitWrap(wrap_v_, wrap_v);
@@ -54,11 +52,6 @@ public:
         const real u = wrap_u(uv.x);
         const real v = wrap_u(uv.y);
         vec3 res = SampleImpl({u, v});
-        if (to_linear) {
-            for (int i = 0; i < 3; i++) {
-                res[i] = SRGBToLinear(res[i]);
-            }
-        }
         return res;
     }
 

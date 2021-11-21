@@ -9,6 +9,7 @@ FM_ENGINE_BEGIN
 class Image
 {
 private:
+    using PerElemProc = real(*)(real);
     vec3 *data_;
     size_t width_;
     size_t height_;
@@ -26,8 +27,11 @@ public:
     void flip_height();
     vec3& operator()(size_t w_idx, size_t h_idx);
     vec3 operator()(size_t w_idx, size_t h_idx) const;
-    void save_to_file(const std::string& filename, bool isHDR = false);
-    void load_from_file(const std::string& filename, bool isHDR = false);
+    void save_to_file(const std::string& filename, bool isHDR = false, bool toLinear = true);
+    void load_from_file(const std::string& filename, bool isHDR = false, bool toSRGB = true);
+    void apply_process(PerElemProc func);
+    void to_linear();
+    void to_srgb();
     template<typename T> void fill_data(T* raw, real scale);
     size_t width() const;
     size_t height() const;

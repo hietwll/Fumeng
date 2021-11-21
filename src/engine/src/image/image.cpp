@@ -73,7 +73,7 @@ void Image::fill(const vec3& val)
 	}
 }
 
-void Image::save_to_file(const std::string& filename, bool isHDR)
+void Image::save_to_file(const std::string& filename, bool isHDR, bool toSRGB)
 {
     hdr = isHDR;
     if (hdr) {
@@ -95,9 +95,10 @@ void Image::save_to_file(const std::string& filename, bool isHDR)
         for (size_t j = 0; j < height_; j++)
             for (size_t i = 0; i < width_; i++)
             {
-                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].x);
-                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].y);
-                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].z);
+                // todo: LinearToSRGB, Clamp should be put in pixel process
+                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].x));
+                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].y));
+                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].z));
             }
 
         stbi_write_png(filename.c_str(), width_, height_, channel_num_, raw_data, width_ * channel_num_);
@@ -119,7 +120,7 @@ void Image::fill_data(T *raw, real scale)
     delete[] raw;
 }
 
-void Image::load_from_file(const std::string& filename, bool isHDR)
+void Image::load_from_file(const std::string& filename, bool isHDR, bool toLinear)
 {
 	int width, height, nrChannels;
 	int desired_channels = 3;
@@ -134,7 +135,34 @@ void Image::load_from_file(const std::string& filename, bool isHDR)
 	    uint8_t* raw_data = stbi_load(filename.c_str(), &width, &height, &nrChannels, desired_channels);
 	    resize(width, height);
         fill_data(raw_data, 255.0_r);
+
+        // hdr is already in linear space
+        if (toLinear) {
+            to_linear();
+        }
 	}
+}
+
+void Image::to_srgb()
+{
+    apply_process(&LinearToSRGB);
+}
+
+void Image::to_linear()
+{
+    apply_process(&SRGBToLinear);
+}
+
+void Image::apply_process(PerElemProc func)
+{
+    size_t idx = 0;
+    for (size_t j = 0; j < height_; j++)
+        for (size_t i = 0; i < width_; i++)
+        {
+            data_[j * width_ + i].x = func(data_[j * width_ + i].x);
+            data_[j * width_ + i].y = func(data_[j * width_ + i].y);
+            data_[j * width_ + i].z = func(data_[j * width_ + i].z);
+        }
 }
 
 size_t Image::width() const

@@ -7,6 +7,7 @@
 #include <engine/core/scene.h>
 #include <engine/core/camera.h>
 #include <engine/core/ray.h>
+#include <engine/core/utils.h>
 #include <thread_pool.hpp>
 
 FM_ENGINE_BEGIN
@@ -56,6 +57,8 @@ public:
                         image(i, j_flip) += RenderPixel(scene, camera_ray);
                     }
                     image(i, j_flip) /= spp;
+
+                    Filmic(image(i ,j_flip), 1.0_r);
                 });
             }
 

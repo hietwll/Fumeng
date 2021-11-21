@@ -51,9 +51,9 @@ SP<const RenderObject> CreateGlass(real radius, const vec3& pos, const vec3& col
 SP<Texture> CreateTexture(std::string path)
 {
     std::string wrap_mode = "repeat";
-    std::string sample_mode = "nearest";
+    std::string sample_mode = "linear";
 
-    return CreateImageTexture(path, wrap_mode, wrap_mode, false, sample_mode);
+    return CreateImageTexture(path, wrap_mode, wrap_mode, sample_mode);
 }
 
 int main()
@@ -71,7 +71,7 @@ int main()
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> sky = CreateTexture("sky.png");
+    SP<Texture> sky = CreateTexture("park_4k.hdr");
     SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left

@@ -5,8 +5,7 @@
 
 FM_ENGINE_BEGIN
 
-SP<Texture> CreateImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
-                               bool to_linear_, std::string& sample_name);
+SP<Texture> CreateImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_, std::string& sample_name);
 
 SP<Texture> CreateConstantTexture(const vec3& value);
 

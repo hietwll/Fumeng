@@ -48,8 +48,8 @@ private:
 
 public:
     ImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
-                 bool to_linear_, std::string& sample_name)
-    : Texture(wrap_u_, wrap_v_, to_linear_)
+                 std::string& sample_name)
+    : Texture(wrap_u_, wrap_v_)
     {
         bool isHDR = false;
         if (img_path_.find(".hdr") != std::string::npos) {
@@ -83,9 +83,9 @@ public:
 };
 
 SP<Texture> CreateImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
-                               bool to_linear_, std::string& sample_name)
+                               std::string& sample_name)
 {
-    return MakeSP<ImageTexture>(img_path_, wrap_u_, wrap_v_, to_linear_, sample_name);
+    return MakeSP<ImageTexture>(img_path_, wrap_u_, wrap_v_, sample_name);
 }
 
 FM_ENGINE_END
