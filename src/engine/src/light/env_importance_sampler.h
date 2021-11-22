@@ -48,7 +48,7 @@ public:
                 const real u0 = real(i) / width;
                 const vec3 radiance = texture->Sample({u0 + 0.5_r * du, v0 + 0.5_r * dv});
                 const real luminance = RGBToLuminance(radiance) * sin_theta;
-                lum[j][i] = luminance;
+                lum[j][i] = 1.0_r; // luminance
                 total_lum += luminance;
             }
         }
@@ -60,10 +60,6 @@ public:
     EnvImportanceSamplerInfo Sample(const vec3& sample) const
     {
         const auto sample_2d = distribution2D->Sample(sample);
-        if (sample_2d.pdf < eps_pdf) {
-            return {black, 0.0_r};
-        }
-
         const real phi = sample_2d.val.x * 2.0_r * PI;
         const real theta = sample_2d.val.y * PI;
         const real sin_phi = std::sin(phi);

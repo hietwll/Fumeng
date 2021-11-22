@@ -39,7 +39,6 @@ Sample1DInfo Distribution1D::Sample(real sample) const
 
     if(delta < eps_pdf || pdf_sum < eps_pdf) {
         spdlog::error("pdf is too small");
-        return {0.0_r, 0.0_r, 0};
     }
 
     const real interp = (sample - cdf[low]) / delta;

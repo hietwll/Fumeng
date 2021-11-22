@@ -8,7 +8,7 @@ FM_ENGINE_BEGIN
 class LambertDiffuseBSDF : public BSDF
 {
 private:
-    vec3 color;
+    vec3 diffuse_color;
 public:
     LambertDiffuseBSDF(const HitPoint& hit_point, const vec3& albedo);
     ~LambertDiffuseBSDF() = default;
@@ -17,12 +17,12 @@ public:
 
 LambertDiffuseBSDF::LambertDiffuseBSDF(const HitPoint& hit_point, const vec3 &albedo) : BSDF(hit_point)
 {
-    color = albedo * InvPI;
+    diffuse_color = albedo * InvPI;
 }
 
 vec3 LambertDiffuseBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 {
-    return color;
+    return diffuse_color;
 }
 
 class LambertDiffuse : public Material

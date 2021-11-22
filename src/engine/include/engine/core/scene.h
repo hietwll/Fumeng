@@ -3,7 +3,9 @@
 
 #include <engine/common.h>
 #include <engine/core/aggregate.h>
+#include <engine/core/light.h>
 #include <vector>
+
 
 FM_ENGINE_BEGIN
 
@@ -44,6 +46,7 @@ public:
     void SetEnvLight(SP<EnvLight> env_light)
     {
         envLight = env_light;
+//        lights.push_back(env_light);
     }
 
     EnvLight* GetEnvLight() const

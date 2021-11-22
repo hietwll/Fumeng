@@ -62,7 +62,7 @@ int main()
     real aspect_ratio = 1024_r / 512.0_r;
     int width = 2048;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
-                                                  vec3(1.0_r, 0.0_r, 0.0_r),
+                                                  vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
                                             1.0_r, DegToRad(60.0_r), aspect_ratio);
 
@@ -71,7 +71,7 @@ int main()
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> sky = CreateTexture("park_4k.hdr");
+    SP<Texture> sky = CreateTexture("EnvTest.png");
     SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left
@@ -82,11 +82,11 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateObj(0.5_r, vec3(-100.0_r, -100.0_r, -100.0_r),
-                           earth, black);
-    auto mid_b = CreateGlass(0.5_r, vec3(-100.0_r, -100.0_r, -100.0_r), vec3(0.99_r), 1.0_r, 3.0_r);
+    auto mid_a = CreateObj(0.5_r, vec3(0.0_r, -5.0_r, 0.0_r),
+                           red, black);
+    auto mid_b = CreateGlass(0.5_r, vec3(-100.0_r, -100.0_r, 0.0_r), vec3(0.99_r), 1.0_r, 3.0_r);
 
-    auto light = CreateObj(2.0_r, vec3(0.0_r, 0.0_r, -3.732_r), white, white * 10.0_r);
+    auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);
 
 //    objects.push_back(left);
 //    objects.push_back(right);
@@ -97,7 +97,7 @@ int main()
 //    objects.push_back(top);
 
     objects.push_back(mid_a);
-    objects.push_back(mid_b);
+//    objects.push_back(mid_b);
 //    objects.push_back(light);
 
     SP<const Aggregate> aggregate = CreateSimpleAggregate(objects);
