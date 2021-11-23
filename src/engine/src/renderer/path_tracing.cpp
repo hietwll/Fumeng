@@ -166,8 +166,15 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
         return black;
     }
 
+    // calculate pdf of bsdf
+    auto bsdf_pdf = hitPoint.bsdf->Pdf(hitPoint.wo_r_w, light_sample.wi_w);
+    if (bsdf_pdf < eps_pdf) {
+        return black;
+    }
+
     auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
-    return f / light_sample.pdf;
+    auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
+    return f / light_sample.pdf * weight;
 }
 
 /*
@@ -191,8 +198,23 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
 
     // environment lighting
     if (!is_intersected) {
-        // todo: handle environment lighting
-        return black;
+        auto envLight = scene.GetEnvLight();
+        if (envLight == nullptr) {
+            return black;
+        }
+
+        const auto radiance = envLight->GetRadiance({}, {}, {}, -r.dir);
+        const vec3 f = bsdf_sample.f * radiance * AbsDot(r.dir, hitPoint.ng);
+
+        // use bsdf sample only
+        if (bsdf_sample.is_delta) {
+            return f / bsdf_sample.pdf;
+        }
+
+        // use mis
+        real lightPdf = envLight->Pdf(r.dir);
+        auto weight = PowerHeuristic(bsdf_sample.pdf, lightPdf);
+        return f / bsdf_sample.pdf * weight;
     }
 
     // hit something else
@@ -210,7 +232,10 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
 
     auto f = bsdf_sample.f * radiance * AbsDot(hitPoint.ng, r.dir);
 
-    // if bsdf is delta, then don't use MIS, just sample the bsdf
+    /*
+     * if bsdf is delta, then don't use MIS, just sample the bsdf
+     * the light sampling will not work since bsdf_pdf is zero
+    */
     if (bsdf_sample.is_delta) {
         return f / bsdf_sample.pdf;
     }
