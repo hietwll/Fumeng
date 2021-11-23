@@ -167,7 +167,6 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
     }
 
     auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
-    auto res = f / light_sample.pdf;
     return f / light_sample.pdf;
 }
 

@@ -83,7 +83,7 @@ int main()
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
     auto mid_a = CreateObj(0.5_r, vec3(0.0_r, -5.0_r, 0.0_r),
-                           red, black);
+                           earth, black);
     auto mid_b = CreateGlass(0.5_r, vec3(-100.0_r, -100.0_r, 0.0_r), vec3(0.99_r), 1.0_r, 3.0_r);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);

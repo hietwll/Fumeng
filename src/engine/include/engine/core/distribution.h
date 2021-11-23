@@ -34,14 +34,14 @@ struct Sample2DInfo
 class Distribution1D
 {
 private:
-    std::vector<real> val;
+    SP<const std::vector<real>> val;
     std::vector<real> cdf;
     real pdf_sum;
     size_t size;
     size_t BinarySearch(real sample, const std::vector<real>& vec) const;
 
 public:
-    explicit Distribution1D(std::vector<real>& value);
+    explicit Distribution1D(SP<const std::vector<real>> value);
     Sample1DInfo Sample(real sample) const;
     size_t Size() const;
     real GetSum() const;

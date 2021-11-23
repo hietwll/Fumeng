@@ -11,7 +11,7 @@ Distribution2D::Distribution2D(vector2d& value, size_t width, size_t height)
     // init conditional pdf
     conditional.resize(height);
     for (size_t j = 0; j < height; ++j) {
-        conditional[j] = MakeUP<Distribution1D>(value[j]);
+        conditional[j] = MakeUP<Distribution1D>(MakeSP<const std::vector<real>>(value[j]));
     }
 
     // calculate marginal data
@@ -22,7 +22,7 @@ Distribution2D::Distribution2D(vector2d& value, size_t width, size_t height)
     };
 
     // init marginal pdf
-    marginal = MakeUP<Distribution1D>(marginal_data);
+    marginal = MakeUP<Distribution1D>(MakeSP<const std::vector<real>>(marginal_data));
 }
 
 Sample2DInfo Distribution2D::Sample(const vec3 &sample) const
@@ -33,7 +33,7 @@ Sample2DInfo Distribution2D::Sample(const vec3 &sample) const
     // sample width (u)
     const auto res_conditional = conditional[res_marginal.idx]->Sample(sample.y);
 
-    // joint pdf
+    // joint pdf w.r.t. uv
     const real pdf = res_marginal.pdf * res_conditional.pdf;
 
     return {{res_conditional.val, res_marginal.val}, pdf};

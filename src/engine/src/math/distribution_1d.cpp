@@ -2,16 +2,17 @@
 
 FM_ENGINE_BEGIN
 
-Distribution1D::Distribution1D(std::vector<real>& value)
+Distribution1D::Distribution1D(SP<const std::vector<real>> value)
 {
-    val = std::move(value);
-    size = val.size();
+    val = value;
+    size = val->size();
 
     // calculate cdf
     cdf.resize(size + 1);
     cdf[0] = 0.0_r;
     for (size_t i = 1; i < size + 1; i++) {
-        cdf[i] = cdf[i - 1] + val[i - 1];
+        // here must divide size since integration is SUM(p * dx)
+        cdf[i] = cdf[i - 1] + val->at(i - 1) / size;
     }
 
     pdf_sum = cdf[size];
@@ -43,7 +44,7 @@ Sample1DInfo Distribution1D::Sample(real sample) const
 
     const real interp = (sample - cdf[low]) / delta;
     const real sample_val = (interp + low) / size;
-    const real pdf = val[low] / pdf_sum;
+    const real pdf = val->at(low) / pdf_sum;
     return {sample_val, pdf, low};
 }
 
@@ -75,7 +76,7 @@ real Distribution1D::GetSum() const
  */
 real Distribution1D::Pdf(size_t idx) const
 {
-    return val[idx];
+    return val->at(idx) / pdf_sum;
 }
 
 FM_ENGINE_END
