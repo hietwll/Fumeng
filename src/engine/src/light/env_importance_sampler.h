@@ -48,7 +48,7 @@ public:
                 const real u0 = real(i) / width;
                 const vec3 radiance = texture->Sample({u0 + 0.5_r * du, v0 + 0.5_r * dv});
                 const real luminance = RGBToLuminance(radiance) * sin_theta;
-                lum[j][i] = 1.0_r; // luminance
+                lum[j][i] = luminance;
                 total_lum += luminance;
             }
         }
