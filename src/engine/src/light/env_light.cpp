@@ -36,7 +36,7 @@ LightSampleInfo EnvLight::Sample(const HitPoint& hit_point, const vec3& sample) 
 {
     const auto info = sampler->Sample(sample);
     const auto radiance = GetRadiance({}, {}, {}, -info.dir);
-    return {hit_point.pos, hit_point.pos + info.dir * world_radius, -info.dir, radiance, info.pdf, REAL_MAX};
+    return {hit_point.pos, hit_point.pos + info.dir * world_radius, info.dir, radiance, info.pdf, REAL_MAX};
 }
 
 vec3 EnvLight::GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const
@@ -45,6 +45,9 @@ vec3 EnvLight::GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, con
     return texture->Sample({sphere_uv.x, sphere_uv.y});
 }
 
+/*
+ * direction should be shading point to light (in world space)
+ */
 real EnvLight::Pdf(const vec3& dir) const
 {
     return sampler->Pdf(dir);
@@ -57,7 +60,7 @@ bool EnvLight::IsDelta() const
 
 real EnvLight::Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const
 {
-    return 0;
+    return sampler->Pdf(-light_to_shd);
 }
 
 SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture_)
