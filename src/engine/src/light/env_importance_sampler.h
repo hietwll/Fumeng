@@ -53,6 +53,13 @@ public:
             }
         }
 
+        // it's important to normalize the pdf, sum of p(u,v) should be 1
+        for (auto& x : lum) {
+            for (auto& y : x) {
+                y = y / total_lum * width * height;
+            }
+        }
+
         // init 2d distribution by luminance
         distribution2D = MakeUP<Distribution2D>(lum, width, height);
     }
