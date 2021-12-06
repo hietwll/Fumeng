@@ -7,6 +7,9 @@ FM_ENGINE_BEGIN
 
 class BaseBXDF
 {
+public:
+    BaseBXDF() = default;
+    virtual ~BaseBXDF();
     virtual vec3 eval(const vec3 &wo, const vec3 &wi) const;
     virtual real pdf(const vec3 &wo, const vec3 &wi) const;
     virtual vec3 sample(const vec3& wo_w, const vec2& samples) const;
@@ -14,7 +17,21 @@ class BaseBXDF
 
 class DisneySpecularReflection : public BaseBXDF
 {
+private:
+    vec3 m_basecolor;
+    real m_specularTint;
+    real m_metallic;
+public:
+    vec3 eval(const vec3 &wo, const vec3 &wi) const override
+    {
+        bool is_reflection = wo.z > 0 && wi.z > 0;
+        if (!is_reflection) {
+            return black;
+        }
 
+        // Fresnel
+
+    }
 };
 
 class DisneyClearCoat : public BaseBXDF
