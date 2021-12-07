@@ -116,15 +116,6 @@ public:
                     xs.z * vec.x + ys.z * vec.y + zs.z * vec.z)
                 );
     };
-
-    /*
-     * Calculate the cos_i between wi and normal (0, 0 ,1) in shading space.
-     * wi \cdot n = |wi||n| cos_i
-     */
-    real CosDir(const vec3& wi) const
-    {
-        return glm::normalize(wi).z;
-    }
 };
 
 FM_ENGINE_END

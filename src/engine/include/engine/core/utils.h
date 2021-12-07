@@ -136,6 +136,11 @@ inline uint8_t RealToUInt8(real color) {
     return static_cast<uint8_t>(round(255.0_r * color));
 }
 
+/**
+ * Convert linear RGB to luminance
+ * @param color RGB in linear space
+ * @return
+ */
 inline real RGBToLuminance(const vec3& color)
 {
     return 0.2126_r * color.x + 0.7152_r * color.y + 0.0722_r * color.z;
@@ -174,6 +179,27 @@ inline void Filmic(vec3& pixel, real lum)
     pixel.x = FilmicCore(1.6_r * pixel.x * lum) / filmicWhite;
     pixel.y = FilmicCore(1.6_r * pixel.y * lum) / filmicWhite;
     pixel.z = FilmicCore(1.6_r * pixel.z * lum) / filmicWhite;
+}
+
+template<typename T>
+inline auto Lerp(const T& start, const T& end, real amt)
+{
+    return (1.0 - amt) * start + amt * end;
+}
+
+inline vec3 ToTint(const vec3& color)
+{
+    const auto luminance = RGBToLuminance(color);
+    return luminance > 0.0 ? color * (1.0 / luminance) : white;
+}
+
+/*
+ * Calculate the cos_i between wi and normal (0, 0 ,1) in shading space.
+ * wi \cdot n = |wi||n| cos_i
+ */
+inline real CosDir(const vec3& wi)
+{
+    return glm::normalize(wi).z;
 }
 
 

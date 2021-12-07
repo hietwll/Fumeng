@@ -1,7 +1,7 @@
 #include <engine/core/material.h>
 #include <engine/core/texture.h>
-
-#include <utility>
+#include <engine/core/utils.h>
+#include <engine/core/fresnel.h>
 
 FM_ENGINE_BEGIN
 
@@ -10,9 +10,37 @@ class BaseBXDF
 public:
     BaseBXDF() = default;
     virtual ~BaseBXDF();
-    virtual vec3 eval(const vec3 &wo, const vec3 &wi) const;
-    virtual real pdf(const vec3 &wo, const vec3 &wi) const;
-    virtual vec3 sample(const vec3& wo_w, const vec2& samples) const;
+    virtual vec3 Eval(const vec3 &wo, const vec3 &wi) const;
+    virtual real Pdf(const vec3 &wo, const vec3 &wi) const;
+    virtual vec3 Sample(const vec3& wo_w, const vec2& samples) const;
+};
+
+/**
+ * Piecewise Dielectric Fresnel Function in Burley 2015's Paper, Eq.(8)
+ */
+class DisneyDielectricFresnel
+{
+private:
+    UP<DielectricFresnel> m_fresnel;
+    real m_ior;
+
+public:
+    DisneyDielectricFresnel(real ior)
+    {
+        m_ior = ior;
+        m_fresnel = MakeUP<DielectricFresnel>(1.0_r, ior);
+    }
+
+    vec3 CalFr(real cos_i) const
+    {
+        const real cos_t2 = 1.0_r - (1.0_r - cos_i * cos_i) / m_ior / m_ior;
+
+        if (cos_t2 > 0) {
+            return m_fresnel->CalFr(cos_i);
+        } else {
+            return white;
+        }
+    }
 };
 
 class DisneySpecularReflection : public BaseBXDF
@@ -21,15 +49,30 @@ private:
     vec3 m_basecolor;
     real m_specularTint;
     real m_metallic;
+    real m_ior;
 public:
-    vec3 eval(const vec3 &wo, const vec3 &wi) const override
+    vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         bool is_reflection = wo.z > 0 && wi.z > 0;
         if (!is_reflection) {
             return black;
         }
 
+        const vec3 wh = glm::normalize(wo + wi); // half vector
+        const real cos_o = CosDir(wo);
+        const real cos_i = CosDir(wi);
+
+        // theta_d is the “difference” angle between light (i.e. wi) and the half vector
+        const real cos_d = glm::dot(wi, wh);
+
         // Fresnel
+        vec3 Cspec = Lerp(white, ToTint(m_basecolor), m_specularTint);
+        Cspec = Lerp(Cspec, m_basecolor, m_metallic);
+
+        // Dielectric fresnel
+        DisneyDielectricFresnel dielectric_fresnel(m_ior);
+        const vec3 f_dielectric = Cspec * dielectric_fresnel.CalFr(cos_d);
+
 
     }
 };
@@ -90,6 +133,7 @@ private:
     real m_specTrans;
     real m_diffTrans;
     real m_flatness;
+    real m_ior;
     bool m_thin;
 public:
     DisneyBSDF(const HitPoint& hit_point,
@@ -106,6 +150,7 @@ public:
        const real specTrans,
        const real diffTrans,
        const real flatness,
+       const real ior,
        const bool thin);
     ~DisneyBSDF() = default;
     vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
@@ -116,7 +161,7 @@ public:
 DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const real metallic, const real specular,
                        const real specularTint, const real roughness, const real anisotropic, const real sheen,
                        const real sheenTint, const real clearcoat, const real clearcoatGloss, const real specTrans,
-                       const real diffTrans, const real flatness, const bool thin)
+                       const real diffTrans, const real flatness, const real ior, const bool thin)
                        : BSDF(hit_point)
 {
     m_basecolor = basecolor;
@@ -132,6 +177,7 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const r
     m_specTrans = specTrans;
     m_diffTrans = diffTrans;
     m_flatness = flatness;
+    m_ior = ior;
     m_thin = thin;
 }
 
@@ -156,6 +202,7 @@ private:
     SP<Texture> m_specTrans;
     SP<Texture> m_diffTrans;
     SP<Texture> m_flatness;
+    SP<Texture> m_ior;
     bool m_thin;
 
 public:
@@ -173,6 +220,7 @@ public:
         SP<Texture> specTrans,
         SP<Texture> diffTrans,
         SP<Texture> flatness,
+        SP<Texture> ior,
         const bool thin)
     {
         m_basecolor = basecolor;
@@ -188,6 +236,7 @@ public:
         m_specTrans = specTrans;
         m_diffTrans = diffTrans;
         m_flatness = flatness;
+        m_ior = ior;
         m_thin = thin;
     }
 
@@ -206,6 +255,7 @@ public:
         const real specTrans = m_specTrans->Sample(hit_point.uv).x;
         const real diffTrans = m_diffTrans->Sample(hit_point.uv).x;
         const real flatness = m_flatness->Sample(hit_point.uv).x;
+        const real ior = m_ior->Sample(hit_point.uv).x;
         const bool thin = m_thin;
         hit_point.bsdf = MakeSP<DisneyBSDF>(hit_point,
                                             basecolor,
@@ -221,6 +271,7 @@ public:
                                             specTrans,
                                             diffTrans,
                                             flatness,
+                                            ior,
                                             thin);
     };
 };
