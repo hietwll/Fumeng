@@ -146,14 +146,24 @@ inline real RGBToLuminance(const vec3& color)
     return 0.2126_r * color.x + 0.7152_r * color.y + 0.0722_r * color.z;
 }
 
+inline real GetSphericalTheta(const vec3& dir)
+{
+    return std::acos(Clamp(dir.z, -1.0_r, 1.0_r));
+}
+
+inline real GetSphericalPhi(const vec3& dir)
+{
+    const real p = std::atan2(dir.y, dir.x);
+    return (p < 0) ? (p + 2.0_r * PI) : p;
+}
+
 inline vec3 GetSphericalUV(const vec3& dir)
 {
     // get theta from dir
-    const real theta = std::acos(Clamp(dir.z, -1.0_r, 1.0_r));
+    const real theta = GetSphericalTheta(dir);
 
     // get phi from dir
-    const real p = std::atan2(dir.y, dir.x);
-    const real phi =  (p < 0) ? (p + 2.0_r * PI) : p;
+    const real phi = GetSphericalPhi(dir);
 
     // get u,v
     const real u = phi * InvPI * 0.5_r;

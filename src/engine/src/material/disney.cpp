@@ -5,6 +5,47 @@
 
 FM_ENGINE_BEGIN
 
+inline vec3 SchlickFresnel(const vec3& F0, real cos_i)
+{
+    const real x = 1.0_r - cos_i;
+    const real x2 = x * x;
+    return F0 + (white - F0) * x2 * x2 * x;
+}
+
+inline real GTR2Anisotropic(const vec3& wh, real alpha_x, real alpha_y)
+{
+    const real phi = GetSphericalPhi(wh);
+    const real theta = GetSphericalTheta(wh);
+
+    const real a = std::cos(phi) / alpha_x;
+    const real b = std::sin(phi) / alpha_y;
+
+    const real tan_theta = std::tan(theta);
+    const real den = tan_theta * tan_theta * (a * a + b * b) + 1.0_r;
+
+    return 1.0_r / (PI * alpha_x * alpha_y * den * den);
+}
+
+inline real SmithLambda(const vec3& w, real alpha_x, real alpha_y)
+{
+    const real phi = GetSphericalPhi(w);
+    const real theta = GetSphericalTheta(w);
+
+    const real a = std::cos(phi) * alpha_x;
+    const real b = std::sin(phi) * alpha_y;
+
+    const real tan_theta = std::tan(theta);
+
+    return -0.5_r + 0.5_r * std::sqrt(1.0_r + (a * a + b * b) * tan_theta * tan_theta);
+}
+
+inline real SmithGGXAnisotropic(const vec3& wo, const vec3& wi, real alpha_x, real alpha_y)
+{
+    const real lambda_i = SmithLambda(wi, alpha_y, alpha_y) + 1.0_r;
+    const real lambda_o = SmithLambda(wo, alpha_y, alpha_y) + 1.0_r;
+    return 1.0_r / lambda_i / lambda_o;
+}
+
 class BaseBXDF
 {
 public:
@@ -47,9 +88,13 @@ class DisneySpecularReflection : public BaseBXDF
 {
 private:
     vec3 m_basecolor;
+    real m_specular;
     real m_specularTint;
     real m_metallic;
     real m_ior;
+    real m_alpha_x;
+    real m_alpha_y;
+
 public:
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
@@ -63,17 +108,25 @@ public:
         const real cos_i = CosDir(wi);
 
         // theta_d is the “difference” angle between light (i.e. wi) and the half vector
+        // note wh is assumed to be normal direction in fresnel calculation
         const real cos_d = glm::dot(wi, wh);
 
         // Fresnel
         vec3 Cspec = Lerp(white, ToTint(m_basecolor), m_specularTint);
         Cspec = Lerp(Cspec, m_basecolor, m_metallic);
 
-        // Dielectric fresnel
         DisneyDielectricFresnel dielectric_fresnel(m_ior);
         const vec3 f_dielectric = Cspec * dielectric_fresnel.CalFr(cos_d);
+        const vec3 f_conduct = SchlickFresnel(Cspec, cos_d);
+        const vec3 f = Lerp(m_specular * f_dielectric, f_conduct, m_metallic);
 
+        // Microfacet normal distribution
+        const real d = GTR2Anisotropic(wh, m_alpha_x, m_alpha_y);
 
+        // Geometry mask
+        const real g = SmithGGXAnisotropic(wo, wi, m_alpha_x, m_alpha_y);
+
+        return f * d * g / std::abs(4.0_r * cos_i * cos_o);
     }
 };
 
