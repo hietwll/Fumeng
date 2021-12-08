@@ -1,7 +1,8 @@
-#include <engine/core/material.h>
+
 #include <engine/core/texture.h>
 #include <engine/core/utils.h>
 #include <engine/core/fresnel.h>
+#include "disney.h"
 
 FM_ENGINE_BEGIN
 
@@ -46,16 +47,6 @@ inline real SmithGGXAnisotropic(const vec3& wo, const vec3& wi, real alpha_x, re
     return 1.0_r / lambda_i / lambda_o;
 }
 
-class BaseBXDF
-{
-public:
-    BaseBXDF() = default;
-    virtual ~BaseBXDF();
-    virtual vec3 Eval(const vec3 &wo, const vec3 &wi) const;
-    virtual real Pdf(const vec3 &wo, const vec3 &wi) const;
-    virtual vec3 Sample(const vec3& wo_w, const vec2& samples) const;
-};
-
 /**
  * Piecewise Dielectric Fresnel Function in Burley 2015's Paper, Eq.(8)
  */
@@ -86,16 +77,12 @@ public:
 
 class DisneySpecularReflection : public BaseBXDF
 {
-private:
-    vec3 m_basecolor;
-    real m_specular;
-    real m_specularTint;
-    real m_metallic;
-    real m_ior;
-    real m_alpha_x;
-    real m_alpha_y;
-
 public:
+    DisneySpecularReflection(const DisneyBSDF* disneyBSDF)
+    : BaseBXDF(disneyBSDF)
+    {
+    }
+
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         bool is_reflection = wo.z > 0 && wi.z > 0;
@@ -112,21 +99,42 @@ public:
         const real cos_d = glm::dot(wi, wh);
 
         // Fresnel
-        vec3 Cspec = Lerp(white, ToTint(m_basecolor), m_specularTint);
-        Cspec = Lerp(Cspec, m_basecolor, m_metallic);
+        vec3 Cspec = Lerp(white, ToTint(para->m_basecolor), para->m_specularTint);
+        Cspec = Lerp(Cspec, para->m_basecolor, para->m_metallic);
 
-        DisneyDielectricFresnel dielectric_fresnel(m_ior);
+        DisneyDielectricFresnel dielectric_fresnel(para->m_ior);
         const vec3 f_dielectric = Cspec * dielectric_fresnel.CalFr(cos_d);
         const vec3 f_conduct = SchlickFresnel(Cspec, cos_d);
-        const vec3 f = Lerp(m_specular * f_dielectric, f_conduct, m_metallic);
+        const vec3 f = Lerp(para->m_specular * f_dielectric, f_conduct, para->m_metallic);
 
         // Microfacet normal distribution
-        const real d = GTR2Anisotropic(wh, m_alpha_x, m_alpha_y);
+        const real d = GTR2Anisotropic(wh, para->m_alpha_x, para->m_alpha_y);
 
         // Geometry mask
-        const real g = SmithGGXAnisotropic(wo, wi, m_alpha_x, m_alpha_y);
+        const real g = SmithGGXAnisotropic(wo, wi, para->m_alpha_x, para->m_alpha_y);
 
         return f * d * g / std::abs(4.0_r * cos_i * cos_o);
+    }
+};
+
+/**
+ * DisneyDiffuse in Burley 2015's Paper, Eq.(4)
+ */
+class DisneyDiffuse : public BaseBXDF
+{
+private:
+    const vec3 m_basecolor;
+
+public:
+    vec3 Eval(const vec3 &wo, const vec3 &wi) const override
+    {
+        const vec3 wh = glm::normalize(wo + wi);
+        const real cos_o = CosDir(wo);
+        const real cos_i = CosDir(wi);
+        const real cos_d = glm::dot(wi, wh);
+
+        const vec3 f_lambert = m_basecolor / PI;
+
     }
 };
 
@@ -155,11 +163,6 @@ class DisneySheen : public BaseBXDF
 
 };
 
-class DisneyDiffuse : public BaseBXDF
-{
-
-};
-
 class DisneyFakeSS : public BaseBXDF
 {
 
@@ -170,46 +173,6 @@ class DisneyLambertianTransmission : public BaseBXDF
 
 };
 
-class DisneyBSDF : public BSDF
-{
-private:
-    vec3 m_basecolor;
-    real m_metallic;
-    real m_specular;
-    real m_specularTint;
-    real m_roughness;
-    real m_anisotropic;
-    real m_sheen;
-    real m_sheenTint;
-    real m_clearcoat;
-    real m_clearcoatGloss;
-    real m_specTrans;
-    real m_diffTrans;
-    real m_flatness;
-    real m_ior;
-    bool m_thin;
-public:
-    DisneyBSDF(const HitPoint& hit_point,
-       const vec3& basecolor,
-       const real metallic,
-       const real specular,
-       const real specularTint,
-       const real roughness,
-       const real anisotropic,
-       const real sheen,
-       const real sheenTint,
-       const real clearcoat,
-       const real clearcoatGloss,
-       const real specTrans,
-       const real diffTrans,
-       const real flatness,
-       const real ior,
-       const bool thin);
-    ~DisneyBSDF() = default;
-    vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
-    real PdfLocal(const vec3& wo, const vec3& wi) const override;
-    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const override;
-};
 
 DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const real metallic, const real specular,
                        const real specularTint, const real roughness, const real anisotropic, const real sheen,
