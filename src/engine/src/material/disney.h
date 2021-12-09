@@ -33,6 +33,7 @@ private:
     // derived parameters
     real m_alpha_x;
     real m_alpha_y;
+    vec3 m_ctint;
 
 public:
     DisneyBSDF(const HitPoint& hit_point,
@@ -60,11 +61,11 @@ public:
 class BaseBXDF
 {
 protected:
-    const DisneyBSDF* para;
+    const DisneyBSDF* m_p;
 
 public:
     explicit BaseBXDF(const DisneyBSDF* disneyBSDF) {
-        para = disneyBSDF;
+        m_p = disneyBSDF;
     };
     virtual ~BaseBXDF() = default;
     virtual vec3 Eval(const vec3 &wo, const vec3 &wi) const = 0;

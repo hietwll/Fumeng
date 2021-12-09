@@ -6,11 +6,16 @@
 
 FM_ENGINE_BEGIN
 
+inline real PowerFive(real x)
+{
+    const real x2 = x * x;
+    return x2 * x2 * x;
+}
+
+
 inline vec3 SchlickFresnel(const vec3& F0, real cos_i)
 {
-    const real x = 1.0_r - cos_i;
-    const real x2 = x * x;
-    return F0 + (white - F0) * x2 * x2 * x;
+    return F0 + (white - F0) * PowerFive(1.0_r - cos_i);
 }
 
 inline real GTR2Anisotropic(const vec3& wh, real alpha_x, real alpha_y)
@@ -99,19 +104,19 @@ public:
         const real cos_d = glm::dot(wi, wh);
 
         // Fresnel
-        vec3 Cspec = Lerp(white, ToTint(para->m_basecolor), para->m_specularTint);
-        Cspec = Lerp(Cspec, para->m_basecolor, para->m_metallic);
+        vec3 Cspec = Lerp(white, m_p->m_ctint, m_p->m_specularTint);
+        Cspec = Lerp(Cspec, m_p->m_basecolor, m_p->m_metallic);
 
-        DisneyDielectricFresnel dielectric_fresnel(para->m_ior);
+        DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
         const vec3 f_dielectric = Cspec * dielectric_fresnel.CalFr(cos_d);
         const vec3 f_conduct = SchlickFresnel(Cspec, cos_d);
-        const vec3 f = Lerp(para->m_specular * f_dielectric, f_conduct, para->m_metallic);
+        const vec3 f = Lerp(m_p->m_specular * f_dielectric, f_conduct, m_p->m_metallic);
 
         // Microfacet normal distribution
-        const real d = GTR2Anisotropic(wh, para->m_alpha_x, para->m_alpha_y);
+        const real d = GTR2Anisotropic(wh, m_p->m_alpha_x, m_p->m_alpha_y);
 
         // Geometry mask
-        const real g = SmithGGXAnisotropic(wo, wi, para->m_alpha_x, para->m_alpha_y);
+        const real g = SmithGGXAnisotropic(wo, wi, m_p->m_alpha_x, m_p->m_alpha_y);
 
         return f * d * g / std::abs(4.0_r * cos_i * cos_o);
     }
@@ -122,25 +127,46 @@ public:
  */
 class DisneyDiffuse : public BaseBXDF
 {
-private:
-    const vec3 m_basecolor;
-
 public:
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         const vec3 wh = glm::normalize(wo + wi);
-        const real cos_o = CosDir(wo);
-        const real cos_i = CosDir(wi);
+        const real cos_o = CosDir(wo); // view dir
+        const real cos_i = CosDir(wi); // light dir
         const real cos_d = glm::dot(wi, wh);
 
-        const vec3 f_lambert = m_basecolor / PI;
+        // lambert
+        const vec3 f_lambert = m_p->m_basecolor / PI;
 
+        // retro reflection
+        const real fl = PowerFive(1.0_r - cos_i);
+        const real fv = PowerFive(1.0_r - cos_o);
+        const real rr = 2.0_r * m_p->m_roughness * cos_d * cos_d;
+        const vec3 f_retro = f_lambert * rr * (fl + fv + fl * fv * (rr - 1.0_r));
+
+        // sheen
+        const vec3 Csheen = Lerp(white, m_p->m_ctint, m_p->m_sheenTint);
+        const vec3 f_sheen = 4.0_r * m_p->m_sheen * Csheen * PowerFive(1.0_r - cos_d);
+
+        return f_lambert * (1.0_r - 0.5_r * fl) * (1.0_r - 0.5_r * fv) + f_retro + f_sheen;
     }
 };
 
 class DisneyClearCoat : public BaseBXDF
 {
+public:
+    vec3 Eval(const vec3 &wo, const vec3 &wi) const override
+    {
+        bool is_reflection = wo.z > 0 && wi.z > 0;
+        if (!is_reflection) {
+            return black;
+        }
 
+        const vec3 wh = glm::normalize(wo + wi);
+        const real cos_o = CosDir(wo); // view dir
+        const real cos_i = CosDir(wi); // light dir
+        const real cos_d = glm::dot(wi, wh);
+    }
 };
 
 class DisneyRoughSpecularTransmission : public BaseBXDF
@@ -195,6 +221,8 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const r
     m_flatness = flatness;
     m_ior = ior;
     m_thin = thin;
+
+    m_ctint = ToTint(m_basecolor);
 }
 
 vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
