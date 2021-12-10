@@ -12,10 +12,14 @@ inline real PowerFive(real x)
     return x2 * x2 * x;
 }
 
-
 inline vec3 SchlickFresnel(const vec3& F0, real cos_i)
 {
     return F0 + (white - F0) * PowerFive(1.0_r - cos_i);
+}
+
+inline real SchlickFresnelScalar(const real& F0, real cos_i)
+{
+    return F0 + (1.0_r - F0) * PowerFive(1.0_r - cos_i);
 }
 
 inline real GTR2Anisotropic(const vec3& wh, real alpha_x, real alpha_y)
@@ -30,6 +34,18 @@ inline real GTR2Anisotropic(const vec3& wh, real alpha_x, real alpha_y)
     const real den = tan_theta * tan_theta * (a * a + b * b) + 1.0_r;
 
     return 1.0_r / (PI * alpha_x * alpha_y * den * den);
+}
+
+inline real GTR1GGX(const vec3& wh, real alpha)
+{
+    const real theta = GetSphericalTheta(wh);
+    const real sin_theta = std::sin(theta);
+    const real cos_theta = std::cos(theta);
+    const real sin_theta_2 = sin_theta * sin_theta;
+    const real cos_theta_2 = cos_theta * cos_theta;
+    const real alpha2 = alpha * alpha;
+    const real den = 2.0_r * PI * std::log(alpha) * (alpha2 * cos_theta_2 + sin_theta_2);
+    return (alpha2 - 1.0_r) / den;
 }
 
 inline real SmithLambda(const vec3& w, real alpha_x, real alpha_y)
@@ -50,6 +66,19 @@ inline real SmithGGXAnisotropic(const vec3& wo, const vec3& wi, real alpha_x, re
     const real lambda_i = SmithLambda(wi, alpha_y, alpha_y) + 1.0_r;
     const real lambda_o = SmithLambda(wo, alpha_y, alpha_y) + 1.0_r;
     return 1.0_r / lambda_i / lambda_o;
+}
+
+inline real SmithGGXSeprate(const vec3& w, real alpha)
+{
+    const real theta = GetSphericalTheta(w);
+    const real tan_theta = std::tan(theta);
+
+    if (tan_theta < eps_pdf) {
+        return 1.0_r;
+    }
+
+    const real den = tan_theta * alpha;
+    return 2.0_r / (1.0_r + std::sqrt(1.0_r + den * den));
 }
 
 /**
@@ -103,19 +132,19 @@ public:
         // note wh is assumed to be normal direction in fresnel calculation
         const real cos_d = glm::dot(wi, wh);
 
-        // Fresnel
-        vec3 Cspec = Lerp(white, m_p->m_ctint, m_p->m_specularTint);
-        Cspec = Lerp(Cspec, m_p->m_basecolor, m_p->m_metallic);
+        // fresnel
+        vec3 c_spec = Lerp(white, m_p->m_ctint, m_p->m_specularTint);
+        c_spec = Lerp(c_spec, m_p->m_basecolor, m_p->m_metallic);
 
         DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
-        const vec3 f_dielectric = Cspec * dielectric_fresnel.CalFr(cos_d);
-        const vec3 f_conduct = SchlickFresnel(Cspec, cos_d);
+        const vec3 f_dielectric = c_spec * dielectric_fresnel.CalFr(cos_d);
+        const vec3 f_conduct = SchlickFresnel(c_spec, cos_d);
         const vec3 f = Lerp(m_p->m_specular * f_dielectric, f_conduct, m_p->m_metallic);
 
-        // Microfacet normal distribution
+        // microfacet normal distribution
         const real d = GTR2Anisotropic(wh, m_p->m_alpha_x, m_p->m_alpha_y);
 
-        // Geometry mask
+        // geometry mask
         const real g = SmithGGXAnisotropic(wo, wi, m_p->m_alpha_x, m_p->m_alpha_y);
 
         return f * d * g / std::abs(4.0_r * cos_i * cos_o);
@@ -128,6 +157,11 @@ public:
 class DisneyDiffuse : public BaseBXDF
 {
 public:
+    DisneyDiffuse(const DisneyBSDF* disneyBSDF)
+    : BaseBXDF(disneyBSDF)
+    {
+    }
+
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         const vec3 wh = glm::normalize(wo + wi);
@@ -145,8 +179,8 @@ public:
         const vec3 f_retro = f_lambert * rr * (fl + fv + fl * fv * (rr - 1.0_r));
 
         // sheen
-        const vec3 Csheen = Lerp(white, m_p->m_ctint, m_p->m_sheenTint);
-        const vec3 f_sheen = 4.0_r * m_p->m_sheen * Csheen * PowerFive(1.0_r - cos_d);
+        const vec3 c_sheen = Lerp(white, m_p->m_ctint, m_p->m_sheenTint);
+        const vec3 f_sheen = 4.0_r * m_p->m_sheen * c_sheen * PowerFive(1.0_r - cos_d);
 
         return f_lambert * (1.0_r - 0.5_r * fl) * (1.0_r - 0.5_r * fv) + f_retro + f_sheen;
     }
@@ -155,6 +189,11 @@ public:
 class DisneyClearCoat : public BaseBXDF
 {
 public:
+    DisneyClearCoat(const DisneyBSDF* disneyBSDF)
+    : BaseBXDF(disneyBSDF)
+    {
+    }
+
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         bool is_reflection = wo.z > 0 && wi.z > 0;
@@ -166,6 +205,18 @@ public:
         const real cos_o = CosDir(wo); // view dir
         const real cos_i = CosDir(wi); // light dir
         const real cos_d = glm::dot(wi, wh);
+
+        // fresnel
+        const real f = SchlickFresnelScalar(0.04_r, cos_d);
+
+        // microfacet normal distribution
+        const real d = GTR1GGX(wh, m_p->m_clearcoat_roughness);
+
+        // geometry mask
+        const real g = SmithGGXSeprate(wi, 0.25_r) * SmithGGXSeprate(wo, 0.25_r);
+
+        const real ret = m_p->m_clearcoat * f * d * g / std::abs(4.0_r * cos_i * cos_o);
+        return vec3(ret);
     }
 };
 
@@ -223,6 +274,7 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const r
     m_thin = thin;
 
     m_ctint = ToTint(m_basecolor);
+    m_clearcoat_roughness = Lerp(0.1_r, 0.001_r, m_clearcoatGloss);
 }
 
 vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const

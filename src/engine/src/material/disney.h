@@ -12,6 +12,7 @@ private:
     friend class BaseBXDF;
     friend class DisneySpecularReflection;
     friend class DisneyDiffuse;
+    friend class DisneyClearCoat;
 
     // original parameters
     vec3 m_basecolor;
@@ -34,6 +35,7 @@ private:
     real m_alpha_x;
     real m_alpha_y;
     vec3 m_ctint;
+    real m_clearcoat_roughness;
 
 public:
     DisneyBSDF(const HitPoint& hit_point,
