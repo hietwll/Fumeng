@@ -37,6 +37,16 @@ private:
     vec3 m_ctint;
     real m_clearcoat_roughness;
 
+    // weight
+    real w_diffuse;
+    real w_specular;
+    real w_clearcoat;
+
+    // submodels
+    UP<DisneySpecularReflection> m_disney_specular_reflection;
+    UP<DisneyDiffuse> m_disney_diffuse;
+    UP<DisneyClearCoat> m_disney_clearcoat;
+
 public:
     DisneyBSDF(const HitPoint& hit_point,
                const vec3& basecolor,
@@ -72,7 +82,11 @@ public:
     virtual ~BaseBXDF() = default;
     virtual vec3 Eval(const vec3 &wo, const vec3 &wi) const = 0;
     virtual real Pdf(const vec3 &wo, const vec3 &wi) const = 0;
-    virtual vec3 Sample(const vec3& wo_w, const vec2& samples) const = 0;
+    virtual vec3 Sample(const vec3& wo, const vec2& samples) const = 0;
+    bool IsReflection(const vec3 &wo, const vec3 &wi) const
+    {
+        return wo.z > 0 && wi.z > 0;
+    }
 };
 
 FM_ENGINE_END

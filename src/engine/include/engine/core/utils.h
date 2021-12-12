@@ -28,7 +28,7 @@ inline vec3 CosineWeightedHemiSphere(const vec2& samples)
     if(zz < 0.0_r) {
         zz = 0.0_r;
     }
-    return {proj.x, proj.y, std::sqrt(zz)};
+    return glm::normalize(vec3(proj.x, proj.y, std::sqrt(zz)));
 }
 
 /*
@@ -210,6 +210,11 @@ inline vec3 ToTint(const vec3& color)
 inline real CosDir(const vec3& wi)
 {
     return glm::normalize(wi).z;
+}
+
+inline real AbsCosDir(const vec3& wi)
+{
+    return std::abs(CosDir(wi));
 }
 
 
