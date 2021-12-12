@@ -538,4 +538,39 @@ public:
     };
 };
 
+SP<Material> CreateDisneyMaterial(
+        SP<Texture> basecolor,
+        SP<Texture> metallic,
+        SP<Texture> specular,
+        SP<Texture> specularTint,
+        SP<Texture> roughness,
+        SP<Texture> anisotropic,
+        SP<Texture> sheen,
+        SP<Texture> sheenTint,
+        SP<Texture> clearcoat,
+        SP<Texture> clearcoatGloss,
+        SP<Texture> specTrans,
+        SP<Texture> diffTrans,
+        SP<Texture> flatness,
+        SP<Texture> ior,
+        const bool thin)
+{
+    return MakeSP<DisneyMaterial>(
+            basecolor,
+            metallic,
+            specular,
+            specularTint,
+            roughness,
+            anisotropic,
+            sheen,
+            sheenTint,
+            clearcoat,
+            clearcoatGloss,
+            specTrans,
+            diffTrans,
+            flatness,
+            ior,
+            thin);
+}
+
 FM_ENGINE_END

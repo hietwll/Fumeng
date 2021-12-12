@@ -34,4 +34,9 @@ SP<Texture> CreateConstantTexture(const vec3& value)
     return MakeSP<ConstantTexture>(value);
 }
 
+SP<Texture> CreateConstantTexture(real value)
+{
+    return MakeSP<ConstantTexture>(vec3(value));
+}
+
 FM_ENGINE_END

@@ -9,6 +9,8 @@ SP<Texture> CreateImageTexture(std::string& img_path_, std::string& wrap_u_, std
 
 SP<Texture> CreateConstantTexture(const vec3& value);
 
+SP<Texture> CreateConstantTexture(real value);
+
 FM_ENGINE_END
 
 #endif

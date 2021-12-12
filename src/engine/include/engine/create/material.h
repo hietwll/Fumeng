@@ -12,6 +12,23 @@ SP<Material> CreateSpecularReflection(const vec3& color, const vec3& eta_i, cons
 
 SP<Material> CreateSpecularTransmission(const vec3& reflect_color_, const vec3& refract_color_, const real eta_i, const real eta_t);
 
+SP<Material> CreateDisneyMaterial(
+        SP<Texture> basecolor,
+        SP<Texture> metallic,
+        SP<Texture> specular,
+        SP<Texture> specularTint,
+        SP<Texture> roughness,
+        SP<Texture> anisotropic,
+        SP<Texture> sheen,
+        SP<Texture> sheenTint,
+        SP<Texture> clearcoat,
+        SP<Texture> clearcoatGloss,
+        SP<Texture> specTrans,
+        SP<Texture> diffTrans,
+        SP<Texture> flatness,
+        SP<Texture> ior,
+        const bool thin);
+
 FM_ENGINE_END
 
 #endif

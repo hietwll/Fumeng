@@ -30,6 +30,62 @@ SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>
     return renderObject;
 }
 
+SP<const RenderObject> CreateDisneyObj(real radius,
+                                       const vec3& pos,
+                                       const vec3& emission = black,
+                                       const vec3& basecolor = red,
+                                       real metallic = 0.0_r,
+                                       real specular = 0.5_r,
+                                       real specularTint = 0.0_r,
+                                       real roughness = 0.0_r,
+                                       real anisotropic = 0.0_r,
+                                       real sheen = 0.0_r,
+                                       real sheenTint = 0.0_r,
+                                       real clearcoat = 0.0_r,
+                                       real clearcoatGloss = 0.0_r,
+                                       real specTrans = 0.0_r,
+                                       real diffTrans = 0.0_r,
+                                       real flatness = 0.0_r,
+                                       real ior = 1.5_r,
+                                       real thin = false)
+{
+    SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
+    SP<Texture> metallic_tex = CreateConstantTexture(metallic);
+    SP<Texture> specular_tex = CreateConstantTexture(specular);
+    SP<Texture> specularTint_tex = CreateConstantTexture(specularTint);
+    SP<Texture> roughness_tex = CreateConstantTexture(roughness);
+    SP<Texture> anisotropic_tex = CreateConstantTexture(anisotropic);
+    SP<Texture> sheen_tex = CreateConstantTexture(sheen);
+    SP<Texture> sheenTint_tex = CreateConstantTexture(sheenTint);
+    SP<Texture> clearcoat_tex = CreateConstantTexture(clearcoat);
+    SP<Texture> clearcoatGloss_tex = CreateConstantTexture(clearcoatGloss);
+    SP<Texture> specTrans_tex = CreateConstantTexture(specTrans);
+    SP<Texture> diffTrans_tex = CreateConstantTexture(diffTrans);
+    SP<Texture> flatness_tex = CreateConstantTexture(flatness);
+    SP<Texture> ior_tex = CreateConstantTexture(ior);
+
+    SP<const Material> material = CreateDisneyMaterial(
+            basecolor_tex,
+            metallic_tex,
+            specular_tex,
+            specularTint_tex,
+            roughness_tex,
+            anisotropic_tex,
+            sheen_tex,
+            sheenTint_tex,
+            clearcoat_tex,
+            clearcoatGloss_tex,
+            specTrans_tex,
+            diffTrans_tex,
+            flatness_tex,
+            ior_tex,
+            thin);
+    auto trs = Transform(pos, black, white);
+    SP<const Geometry> sphere = CreateSphere(radius, trs);
+    SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, emission);
+    return renderObject;
+}
+
 SP<const RenderObject> CreateMirror(real radius, const vec3& pos, const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
 {
     SP<const Material> material = CreateSpecularReflection(color, eta_i, eta_t, k);
@@ -60,7 +116,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 512.0_r;
-    int width = 4096;
+    int width = 1024;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
                                                   vec3(1.0_r, 0.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
@@ -71,7 +127,7 @@ int main()
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> sky = CreateTexture("ballroom_4k.hdr");
+    SP<Texture> sky = CreateTexture("park_4k.hdr");
     SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left
@@ -82,9 +138,8 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateObj(0.5_r, vec3(12.5_r, -1.0_r, -1.0_r),
-                           earth, black);
-    auto mid_b = CreateGlass(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), 1.0_r, 1.5_r);
+    auto mid_a = CreateDisneyObj(0.5_r, vec3(12.5_r, -1.0_r, -1.0_r), black);
+    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);
 
