@@ -82,7 +82,7 @@ public:
      * Sampling the BSDF
      * by default, we use cosine-weighted hemisphere sampling
      */
-    virtual BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const
+    virtual BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const
     {
         vec3 wo = WorldToShading(wo_w);
         vec3 wi = CosineWeightedHemiSphere(samples);

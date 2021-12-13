@@ -42,7 +42,7 @@ public:
         return glm::normalize(eta * (-w_i) + (eta * cos_i - cos_t) * normal);
     }
 
-    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const override
+    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override
     {
         vec3 wo = WorldToShading(wo_w);
         real fr = (fresnel->CalFr(CosDir(wo))).x;

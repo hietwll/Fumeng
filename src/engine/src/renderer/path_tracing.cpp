@@ -76,7 +76,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         color += direct / static_cast<real>(direct_loop);
 
         // sample BSDF
-        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
         if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
             break;
         }
@@ -183,7 +183,7 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
 vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) const
 {
     // sample bsdf
-    auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get2D());
+    auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
     if (glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
         return black;
     }

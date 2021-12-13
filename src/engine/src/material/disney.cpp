@@ -384,6 +384,10 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point, const vec3 &basecolor, const r
     w_specular = (1.0 - w_diffuse) * 2 / (2 + m_clearcoat);
     w_clearcoat = (1.0 - w_diffuse) * m_clearcoat / (2 + m_clearcoat);
 
+    w_diffuse = 0.5;
+    w_specular = 0.5;
+    w_clearcoat = 0.0;
+
     const real w_sum_inv = 1.0_r / (w_diffuse + w_specular + w_clearcoat);
 
     w_diffuse = w_diffuse * w_sum_inv;
@@ -403,13 +407,18 @@ vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
         return ret;
     }
 
+    vec3 diffuse = black;
+    vec3 specular = black;
+
     // diffuse
     if (m_metallic < 1.0_r) {
-        ret += (1.0 - m_metallic) * m_disney_diffuse->Eval(wo, wi);
+        diffuse = m_disney_diffuse->Eval(wo, wi);
+        ret += (1.0 - m_metallic) * diffuse;
     }
 
     // specular
-    ret += m_disney_specular_reflection->Eval(wo, wi);
+    specular = m_disney_specular_reflection->Eval(wo, wi);
+    ret += specular;
 
     // clearcoat
     if (m_clearcoat > 0.0_r) {
@@ -419,11 +428,11 @@ vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
     return ret;
 }
 
-BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec2 &samples) const
+BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) const
 {
     vec3 wo = WorldToShading(wo_w);
 
-    real roulette = std::rand();
+    real roulette = samples.z;
     vec3 wi = black;
 
     if (roulette < w_diffuse) {

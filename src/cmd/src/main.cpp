@@ -35,7 +35,7 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        const vec3& emission = black,
                                        const vec3& basecolor = red,
                                        real metallic = 0.0_r,
-                                       real specular = 0.5_r,
+                                       real specular = 1.0_r,
                                        real specularTint = 0.0_r,
                                        real roughness = 0.0_r,
                                        real anisotropic = 0.0_r,
@@ -116,7 +116,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 512.0_r;
-    int width = 1024;
+    int width = 4096;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
                                                   vec3(1.0_r, 0.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
@@ -139,7 +139,7 @@ int main()
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
     auto mid_a = CreateDisneyObj(0.5_r, vec3(12.5_r, -1.0_r, -1.0_r), black);
-    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
+//    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);
 
@@ -152,7 +152,7 @@ int main()
 //    objects.push_back(top);
 
     objects.push_back(mid_a);
-    objects.push_back(mid_b);
+//    objects.push_back(mid_b);
 //    objects.push_back(light);
 
     SP<const Aggregate> aggregate = CreateSimpleAggregate(objects);

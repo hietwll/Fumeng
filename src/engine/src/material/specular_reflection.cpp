@@ -25,7 +25,7 @@ public:
         return 0.0_r;
     }
 
-    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const override
+    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override
     {
         vec3 wo = WorldToShading(wo_w);
         vec3 wi = vec3(-wo.x, -wo.y, wo.z);

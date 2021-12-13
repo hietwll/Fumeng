@@ -67,7 +67,7 @@ public:
     ~DisneyBSDF() = default;
     vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
     real PdfLocal(const vec3& wo, const vec3& wi) const override;
-    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec2& samples) const override;
+    BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override;
 };
 
 class BaseBXDF
