@@ -13,6 +13,7 @@ private:
     friend class DisneySpecularReflection;
     friend class DisneyDiffuse;
     friend class DisneyClearCoat;
+    friend class DisneySpecularTransmission;
 
     // original parameters
     vec3 m_basecolor;
@@ -26,6 +27,7 @@ private:
     real m_clearcoat;
     real m_clearcoatGloss;
     real m_specTrans;
+    real m_specTransRoughness;
     real m_diffTrans;
     real m_flatness;
     real m_ior;
@@ -36,16 +38,22 @@ private:
     real m_alpha_y;
     vec3 m_ctint;
     real m_clearcoat_roughness;
+    real m_ior_r;
+    real m_trans_alpha_x;
+    real m_trans_alpha_y;
+    vec3 m_cspec0;
 
     // weight
-    real w_diffuse;
-    real w_specular;
-    real w_clearcoat;
+    real m_w_diffuse_refl;
+    real m_w_specular_refl;
+    real m_w_clearcoat;
+    real m_w_specular_trans;
 
     // submodels
     UP<DisneySpecularReflection> m_disney_specular_reflection;
     UP<DisneyDiffuse> m_disney_diffuse;
     UP<DisneyClearCoat> m_disney_clearcoat;
+    UP<DisneySpecularTransmission> m_disney_specular_transmission;
 
 public:
     DisneyBSDF(const HitPoint& hit_point,
@@ -60,6 +68,7 @@ public:
                real clearcoat,
                real clearcoatGloss,
                real specTrans,
+               real specTransRoughness,
                real diffTrans,
                real flatness,
                real ior,
@@ -68,6 +77,7 @@ public:
     vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
     real PdfLocal(const vec3& wo, const vec3& wi) const override;
     BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override;
+    BSDFSampleInfo SampleInfoFromWoWi(const vec3& wo, const vec3& wi) const;
 };
 
 class BaseBXDF
@@ -86,7 +96,15 @@ public:
     bool IsReflection(const vec3 &wo, const vec3 &wi) const
     {
         return wo.z > 0 && wi.z > 0;
-    }
+    };
+    bool IsRefraction(const vec3 &wo, const vec3 &wi) const
+    {
+        return wo.z * wi.z < 0;
+    };
+    bool IsInnerReflection(const vec3 &wo, const vec3 &wi) const
+    {
+        return wo.z < 0 && wi.z < 0;
+    };
 };
 
 FM_ENGINE_END

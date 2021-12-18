@@ -24,6 +24,7 @@ SP<Material> CreateDisneyMaterial(
         SP<Texture> clearcoat,
         SP<Texture> clearcoatGloss,
         SP<Texture> specTrans,
+        SP<Texture> specTransRoughness,
         SP<Texture> diffTrans,
         SP<Texture> flatness,
         SP<Texture> ior,

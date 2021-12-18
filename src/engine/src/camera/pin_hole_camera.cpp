@@ -25,7 +25,8 @@ public:
 
 PinHoleCamera::PinHoleCamera(const vec3 &pos, const vec3 &look_at, const vec3 &up, real focal_distance, real fov,
                              real aspect)
-                             : pos_(pos), look_at_(look_at), up_(up), focal_distance_(focal_distance), fov_(fov), aspect_(aspect)
+                             : pos_(pos), look_at_(glm::normalize(look_at)), up_(glm::normalize(up)),
+                             focal_distance_(focal_distance), fov_(fov), aspect_(aspect)
 {
     camera_to_world = Transform(glm::lookAt(pos_, look_at_, up_)).InvTransform(); //LookAt(pos_, look_at_, up_);//
     film_height_ = 2.0_r * focal_distance_ * std::tan(fov_ / 2.0_r);

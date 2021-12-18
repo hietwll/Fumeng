@@ -34,16 +34,17 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        const vec3& pos,
                                        const vec3& emission = black,
                                        const vec3& basecolor = red,
-                                       real metallic = 0.0_r,
+                                       real metallic = 1.0_r,
                                        real specular = 1.0_r,
                                        real specularTint = 0.0_r,
-                                       real roughness = 0.0_r,
+                                       real roughness = 0.5_r,
                                        real anisotropic = 0.0_r,
                                        real sheen = 0.0_r,
                                        real sheenTint = 0.0_r,
-                                       real clearcoat = 0.0_r,
+                                       real clearcoat = 1.0_r,
                                        real clearcoatGloss = 0.0_r,
                                        real specTrans = 0.0_r,
+                                       real specTransRoughness = 0.0_r,
                                        real diffTrans = 0.0_r,
                                        real flatness = 0.0_r,
                                        real ior = 1.5_r,
@@ -60,6 +61,7 @@ SP<const RenderObject> CreateDisneyObj(real radius,
     SP<Texture> clearcoat_tex = CreateConstantTexture(clearcoat);
     SP<Texture> clearcoatGloss_tex = CreateConstantTexture(clearcoatGloss);
     SP<Texture> specTrans_tex = CreateConstantTexture(specTrans);
+    SP<Texture> specTransRoughness_tex = CreateConstantTexture(specTransRoughness);
     SP<Texture> diffTrans_tex = CreateConstantTexture(diffTrans);
     SP<Texture> flatness_tex = CreateConstantTexture(flatness);
     SP<Texture> ior_tex = CreateConstantTexture(ior);
@@ -76,6 +78,7 @@ SP<const RenderObject> CreateDisneyObj(real radius,
             clearcoat_tex,
             clearcoatGloss_tex,
             specTrans_tex,
+            specTransRoughness_tex,
             diffTrans_tex,
             flatness_tex,
             ior_tex,
@@ -118,7 +121,7 @@ int main()
     real aspect_ratio = 1024_r / 512.0_r;
     int width = 4096;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
-                                                  vec3(1.0_r, 0.0_r, 0.0_r),
+                                                  vec3(1.0_r, 1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
                                             1.0_r, DegToRad(30.0_r), aspect_ratio);
 
@@ -127,7 +130,7 @@ int main()
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> sky = CreateTexture("park_4k.hdr");
+    SP<Texture> sky = CreateTexture("spaichingen_hill_4k.hdr");
     SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left
@@ -138,7 +141,7 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateDisneyObj(0.5_r, vec3(12.5_r, -1.0_r, -1.0_r), black);
+    auto mid_a = CreateDisneyObj(0.5_r, vec3(8.0_r, 8.0_r, 0.0_r), black);
 //    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);

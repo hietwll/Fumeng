@@ -1,7 +1,6 @@
 #include <engine/core/material.h>
 #include <engine/core/fresnel.h>
-
-#include <optional>
+#include "material_common.h"
 
 FM_ENGINE_BEGIN
 
@@ -25,21 +24,6 @@ public:
     real PdfLocal(const vec3& wo, const vec3& wi) const override
     {
         return 0.0_r;
-    }
-
-    std::optional<vec3> RefractDir(const vec3& w_i, const vec3& normal, const real eta) const
-    {
-        real cos_i = glm::dot(normal, w_i);
-        real sin2i = std::max(0.0_r, 1.0_r - cos_i * cos_i);
-        real sin2t = eta * eta * sin2i;
-
-        // total internal reflection
-        if (sin2t >= 1.0_r) {
-            return std::nullopt;
-        }
-
-        real cos_t = std::sqrt(1.0_r - sin2t);
-        return glm::normalize(eta * (-w_i) + (eta * cos_i - cos_t) * normal);
     }
 
     BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override
@@ -69,7 +53,7 @@ public:
         real eta = eta_i / eta_t;
 
         // get refracted direction
-        auto wt = RefractDir(wo, normal, eta);
+        auto wt = mat_func::RefractDir(wo, normal, eta);
         if (!wt) {
             return {black, black, 0.0_r, true};
         }
