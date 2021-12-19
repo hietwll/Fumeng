@@ -211,7 +211,11 @@ public:
             return black;
         }
 
-        // refraction is not reciprocal, in/out direction influences relative IOR
+        /**
+         * refraction is not reciprocal, in/out direction influences relative IOR
+         * eta is IOR_light / IOR_view
+         * wo is view direction, wi is light direction
+         */
         const real eta = wo.z > 0 ? m_p->m_ior : m_p->m_ior_r;
 
         // half direction of refraction, Burley 2015, Eq(1)
@@ -250,7 +254,7 @@ public:
 
         /**
          * 1. when ray goes from outside to inside (wo.z > 0), i.e. when look from out side to inside
-         * we track diffuse, specular, clearcoat, sheen, transmission etc. so the coef for transmission
+         * we track diffuse, specular, clearcoat, sheen, transmission etc. so the coeff for transmission
          * is m_specTrans.
          * 2. when ray goes from inside to outside, we only track specular and transmission, there is no
          * diffuse, so transmission has total share.
@@ -269,14 +273,14 @@ public:
             return black;
         }
 
-        // eta for RefractDir should be incident IOR / transmitted IOR
-        const real eta = wo.z > 0 ? m_p->m_ior_r : m_p->m_ior;
+        // eta_r for RefractDir should be incident IOR / transmitted IOR
+        const real eta_r = wo.z > 0 ? m_p->m_ior_r : m_p->m_ior;
 
         // norm for RefractDir should be in same hemisphere
         const vec3 norm = glm::dot(wo, wh) > 0 ? wh : -wh;
 
         // get transmitted direction
-        const auto wt = mat_func::RefractDir(wo, norm, eta);
+        const auto wt = mat_func::RefractDir(wo, norm, eta_r);
 
         // total internal reflection
         if(!wt) {
