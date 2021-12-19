@@ -248,7 +248,16 @@ public:
         // Burley 2015, Eq(2)
         const real f_t = (1.0_r - f) * d * g * cos_d_o * cos_d_i / (cos_i * cos_o * den * den);
 
-        return m_p->m_specTrans * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_t);
+        /**
+         * 1. when ray goes from outside to inside (wo.z > 0), i.e. when look from out side to inside
+         * we track diffuse, specular, clearcoat, sheen, transmission etc. so the coef for transmission
+         * is m_specTrans.
+         * 2. when ray goes from inside to outside, we only track specular and transmission, there is no
+         * diffuse, so transmission has total share.
+         */
+        const real trans_coeff = wo.z > 0 ? m_p->m_specTrans : 1.0_r;
+
+        return trans_coeff * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_t);
     }
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
@@ -256,12 +265,17 @@ public:
         const vec3 wh = mat_func::SampleGTR2(m_p->m_trans_alpha_x, m_p->m_trans_alpha_y, samples);
         // wh is assumed to be in up hemisphere
         if (wh.z <= 0) {
+            spdlog::error("Sampled transmission normal direction should be in up hemisphere.");
             return black;
         }
 
-        // refraction is not reciprocal
+        // eta for RefractDir should be incident IOR / transmitted IOR
         const real eta = wo.z > 0 ? m_p->m_ior_r : m_p->m_ior;
+
+        // norm for RefractDir should be in same hemisphere
         const vec3 norm = glm::dot(wo, wh) > 0 ? wh : -wh;
+
+        // get transmitted direction
         const auto wt = mat_func::RefractDir(wo, norm, eta);
 
         // total internal reflection
@@ -453,6 +467,10 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
 
 BSDFSampleInfo DisneyBSDF::SampleInfoFromWoWi(const vec3 &wo, const vec3 &wi) const
 {
+    if (glm::length(wi) < eps_pdf) {
+        return {black, black, 0, false};
+    }
+
     real pdf = PdfLocal(wo, wi);
     vec3 f = CalFuncLocal(wo, wi);
     return {f, ShadingToWorld(wi), pdf, false};
