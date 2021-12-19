@@ -102,6 +102,13 @@ namespace mat_func{
         return 2.0_r / (1.0_r + std::sqrt(1.0_r + den * den));
     }
 
+    /**
+     * get refraction dir
+     * @param w_i incident direction
+     * @param normal normal of interface
+     * @param eta incident IOR / refracted IOR
+     * @return
+     */
     std::optional<vec3> RefractDir(const vec3& w_i, const vec3& normal, const real eta)
     {
         real cos_i = glm::dot(normal, w_i);

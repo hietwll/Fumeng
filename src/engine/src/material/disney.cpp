@@ -13,24 +13,16 @@ class DisneyDielectricFresnel
 {
 private:
     UP<DielectricFresnel> m_fresnel;
-    real m_ior;
 
 public:
     DisneyDielectricFresnel(real ior)
     {
-        m_ior = ior;
         m_fresnel = MakeUP<DielectricFresnel>(1.0_r, ior);
     }
 
     vec3 CalFr(real cos_i) const
     {
-        const real cos_t2 = 1.0_r - (1.0_r - cos_i * cos_i) / m_ior / m_ior;
-
-        if (cos_t2 > 0) {
-            return m_fresnel->CalFr(cos_i);
-        } else {
-            return white;
-        }
+        return m_fresnel->CalFr(cos_i);
     }
 };
 
@@ -244,19 +236,19 @@ public:
         const real f = dielectric_fresnel.CalFr(cos_d_o).x;
 
         // microfacet normal distribution
-        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_specTransRoughness,
-                                                 m_p->m_specTransRoughness);
+        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_trans_alpha_x,
+                                                 m_p->m_trans_alpha_y);
 
         // geometry mask
-        const real g = mat_func::SmithGGXAnisotropic(wo, wi, m_p->m_specTransRoughness,
-                                                     m_p->m_specTransRoughness);
+        const real g = mat_func::SmithGGXAnisotropic(wo, wi, m_p->m_trans_alpha_x,
+                                                     m_p->m_trans_alpha_y);
 
         const real den = eta * cos_d_i + cos_d_o;
 
         // Burley 2015, Eq(2)
         const real f_t = (1.0_r - f) * d * g * cos_d_o * cos_d_i / (cos_i * cos_o * den * den);
 
-        return m_p->m_specTrans * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * f_t;
+        return m_p->m_specTrans * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_t);
     }
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
@@ -268,8 +260,8 @@ public:
         }
 
         // refraction is not reciprocal
-        const real eta = wo.z > 0 ? m_p->m_ior : m_p->m_ior_r;
-        const vec3 norm = wo.z > 0 ? wh : -wh;
+        const real eta = wo.z > 0 ? m_p->m_ior_r : m_p->m_ior;
+        const vec3 norm = glm::dot(wo, wh) > 0 ? wh : -wh;
         const auto wt = mat_func::RefractDir(wo, norm, eta);
 
         // total internal reflection
@@ -297,19 +289,14 @@ public:
             wh = -wh;
         }
 
-        // different from Brent Burley's 2015 paper, here wo is light direction
-        // wi is view direction
-        const real cos_o = CosDir(wo);
-        const real cos_i = CosDir(wi);
-
         // theta_d is the “difference” angle between light (i.e. wi) and the half vector
         // note wh is assumed to be normal direction in fresnel calculation
         const real cos_d_o = glm::dot(wo, wh);
         const real cos_d_i = glm::dot(wi, wh);
 
         // microfacet normal distribution
-        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_specTransRoughness,
-                                                 m_p->m_specTransRoughness);
+        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_trans_alpha_x,
+                                                 m_p->m_trans_alpha_y);
 
         const real den = eta * cos_d_i + cos_d_o;
         const real dwh_dwi = eta * eta * cos_d_i / den / den;
@@ -367,7 +354,9 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
 
     // derived parameters
     m_ctint = ToTint(m_basecolor);
-    m_clearcoat_roughness = Lerp(0.1_r, 0.001_r, m_clearcoatGloss);
+    m_clearcoat_roughness = Lerp(0.1_r, 0.0_r, m_clearcoatGloss);
+    m_clearcoat_roughness *= m_clearcoat_roughness;
+    m_clearcoat_roughness = m_clearcoat_roughness > 0.0001_r ? m_clearcoat_roughness : 0.0001_r;
     m_ior_r = 1.0_r / m_ior;
     m_cspec0 = Lerp(white, m_ctint, m_specularTint);
     m_cspec0 = Lerp(m_cspec0, m_basecolor, m_metallic);
@@ -386,7 +375,7 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     const real cspec0_lum = RGBToLuminance(m_cspec0);
     m_w_diffuse_refl = basecolor_lum * (1.0_r - m_metallic) * (1.0_r - m_specTrans);
     m_w_specular_refl = cspec0_lum * 2.0_r;
-    m_w_clearcoat = m_clearcoat * 2.0;
+    m_w_clearcoat = m_clearcoat;
     m_w_specular_trans = basecolor_lum * (1.0_r - m_metallic) * specTrans;
 
     const real w_sum_inv = 1.0_r / (m_w_diffuse_refl + m_w_specular_refl
@@ -407,18 +396,20 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
 vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 {
     vec3 ret = black;
-
-    if (wo.z * wi.z < 0 && m_specTrans > 0.0_r) {
-        return m_disney_specular_transmission->Eval(wo, wi);
-    }
-
     vec3 diffuse = black;
     vec3 specular = black;
+    vec3 transmission = black;
+    vec3 clearcoat = black;
+
+    if (wo.z * wi.z < 0 && m_specTrans > 0.0_r) {
+        transmission = m_disney_specular_transmission->Eval(wo, wi);
+        return transmission;
+    }
 
     // diffuse
-    if (m_metallic < 1.0_r) {
-        diffuse = m_disney_diffuse->Eval(wo, wi);
-        ret += (1.0 - m_metallic) * diffuse;
+    if (m_metallic < 1.0_r && m_specTrans < 1.0_r) {
+        diffuse = (1.0_r - m_metallic) * (1.0_r - m_specTrans) * m_disney_diffuse->Eval(wo, wi);
+        ret += diffuse;
     }
 
     // specular
@@ -427,7 +418,8 @@ vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 
     // clearcoat
     if (m_clearcoat > 0.0_r) {
-        ret += m_disney_clearcoat->Eval(wo, wi);
+        clearcoat = m_disney_clearcoat->Eval(wo, wi);
+        ret += clearcoat;
     }
 
     return ret;
