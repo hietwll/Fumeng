@@ -14,6 +14,7 @@ private:
     friend class DisneyDiffuse;
     friend class DisneyClearCoat;
     friend class DisneySpecularTransmission;
+    friend class DisneyInternalReflection;
 
     // original parameters
     vec3 m_basecolor;
@@ -54,6 +55,7 @@ private:
     UP<DisneyDiffuse> m_disney_diffuse;
     UP<DisneyClearCoat> m_disney_clearcoat;
     UP<DisneySpecularTransmission> m_disney_specular_transmission;
+    UP<DisneyInternalReflection> m_disney_internal_reflection;
 
 public:
     DisneyBSDF(const HitPoint& hit_point,
@@ -101,7 +103,7 @@ public:
     {
         return wo.z * wi.z < 0;
     };
-    bool IsInnerReflection(const vec3 &wo, const vec3 &wi) const
+    bool IsInternalReflection(const vec3 &wo, const vec3 &wi) const
     {
         return wo.z < 0 && wi.z < 0;
     };
