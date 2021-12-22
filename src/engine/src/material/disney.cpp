@@ -46,7 +46,7 @@ public:
 
         // theta_d is the “difference” angle between light (i.e. wi) and the half vector
         // note wh is assumed to be normal direction in fresnel calculation
-        const real cos_d = glm::dot(wi, wh);
+        const real cos_d = glm::dot(wi, wh.z > 0 ? wh : -wh);
 
         DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
         const vec3 f_dielectric = m_p->m_cspec0 * dielectric_fresnel.CalFr(cos_d);
@@ -64,9 +64,11 @@ public:
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
-        const vec3 wh = mat_func::SampleGTR2(m_p->m_alpha_x, m_p->m_alpha_y, samples);
+        vec3 wh = mat_func::SampleGTR2(m_p->m_alpha_x, m_p->m_alpha_y, samples);
+        wh = wo.z > 0 ? wh : -wh;
+
         const vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
-        if (wi.z < 0) {
+        if (!IsReflection(wo, wi)) {
             return black;
         }
         return wi;
@@ -79,10 +81,10 @@ public:
         }
 
         const vec3 wh = glm::normalize(wo + wi); // half vector
-        const real cos_d = glm::dot(wi, wh);
+        const real cos_d = glm::dot(wi, wh.z > 0 ? wh : -wh);
         // microfacet normal distribution
         const real d = mat_func::GTR2Anisotropic(wh, m_p->m_alpha_x, m_p->m_alpha_y);
-        return AbsCosDir(wh) * d / (4.0_r * cos_d);
+        return  std::abs(AbsCosDir(wh) * d / (4.0_r * cos_d));
     }
 };
 

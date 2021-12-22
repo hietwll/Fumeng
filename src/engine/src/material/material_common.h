@@ -2,6 +2,7 @@
 #define FUMENG_MATERIAL_COMMON_H
 
 #include <engine/common.h>
+#include <engine/core/utils.h>
 #include <optional>
 
 FM_ENGINE_BEGIN
@@ -15,12 +16,12 @@ namespace mat_func{
 
     inline vec3 SchlickFresnel(const vec3& F0, real cos_i)
     {
-        return F0 + (white - F0) * PowerFive(1.0_r - cos_i);
+        return F0 + (white - F0) * PowerFive(Clamp(1.0_r - cos_i, 0.0_r, 1.0_r));
     }
 
     inline real SchlickFresnelScalar(const real& F0, real cos_i)
     {
-        return F0 + (1.0_r - F0) * PowerFive(1.0_r - cos_i);
+        return F0 + (1.0_r - F0) * PowerFive(Clamp(1.0_r - cos_i, 0.0_r, 1.0_r));
     }
 
     real GTR2Anisotropic(const vec3& wh, real alpha_x, real alpha_y);

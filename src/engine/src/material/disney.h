@@ -97,7 +97,7 @@ public:
     virtual vec3 Sample(const vec3& wo, const vec2& samples) const = 0;
     bool IsReflection(const vec3 &wo, const vec3 &wi) const
     {
-        return wo.z > 0 && wi.z > 0;
+        return wo.z * wi.z > 0;
     };
     bool IsRefraction(const vec3 &wo, const vec3 &wi) const
     {
