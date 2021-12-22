@@ -50,7 +50,7 @@ public:
 
         DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
         const vec3 f_dielectric = m_p->m_cspec0 * dielectric_fresnel.CalFr(cos_d);
-        const vec3 f_conduct = mat_func::SchlickFresnel(m_p->m_cspec0, cos_d);
+        const vec3 f_conduct = mat_func::SchlickFresnel(m_p->m_cspec0, std::abs(cos_d));
         const vec3 f = Lerp(m_p->m_specular * f_dielectric, f_conduct, m_p->m_metallic);
 
         // microfacet normal distribution
@@ -102,9 +102,9 @@ public:
     vec3 Eval(const vec3 &wo, const vec3 &wi) const override
     {
         const vec3 wh = glm::normalize(wo + wi);
-        const real cos_o = CosDir(wo); // view dir
-        const real cos_i = CosDir(wi); // light dir
-        const real cos_d = glm::dot(wi, wh);
+        const real cos_o = std::abs(CosDir(wo)); // view dir
+        const real cos_i = std::abs(CosDir(wi)); // light dir
+        const real cos_d = std::abs(glm::dot(wi, wh));
 
         // lambert
         const vec3 f_lambert = m_p->m_basecolor / PI;
@@ -125,7 +125,8 @@ public:
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
-        return CosineWeightedHemiSphere(samples);
+        vec3 wi = CosineWeightedHemiSphere(samples);
+        return wo.z > 0 ? wi : -wi;
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override
@@ -152,9 +153,9 @@ public:
         }
 
         const vec3 wh = glm::normalize(wo + wi);
-        const real cos_o = CosDir(wo); // view dir
-        const real cos_i = CosDir(wi); // light dir
-        const real cos_d = glm::dot(wi, wh);
+        const real cos_o = std::abs(CosDir(wo)); // view dir
+        const real cos_i = std::abs(CosDir(wi)); // light dir
+        const real cos_d = std::abs(glm::dot(wi, wh));
 
         // fresnel
         const real f = mat_func::SchlickFresnelScalar(0.04_r, cos_d);
@@ -172,9 +173,10 @@ public:
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
-        const vec3 wh = mat_func::SampleGTR1(m_p->m_clearcoat_roughness, samples);
+        vec3 wh = mat_func::SampleGTR1(m_p->m_clearcoat_roughness, samples);
+        wh = wo.z > 0 ? wh : -wh;
         const vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
-        if (wi.z < 0) {
+        if (!IsReflection(wo, wi)) {
             return black;
         }
         return wi;
@@ -190,7 +192,7 @@ public:
         const real cos_d = glm::dot(wi, wh);
         // microfacet normal distribution
         const real d = mat_func::GTR1GGX(wh, m_p->m_clearcoat_roughness);
-        return AbsCosDir(wh) * d / (4.0_r * cos_d);
+        return std::abs(AbsCosDir(wh) * d / (4.0_r * cos_d));
     }
 };
 
@@ -254,16 +256,7 @@ public:
         // Burley 2015, Eq(2)
         const real f_t = (1.0_r - f) * d * g * cos_d_o * cos_d_i / (cos_i * cos_o * den * den);
 
-        /**
-         * 1. when ray goes from outside to inside (wo.z > 0), i.e. when look from out side to inside
-         * we track diffuse, specular, clearcoat, sheen, transmission etc. so the coeff for transmission
-         * is m_specTrans.
-         * 2. when ray goes from inside to outside, we only track specular and transmission, there is no
-         * diffuse, so transmission has total share.
-         */
-        const real trans_coeff = wo.z > 0 ? m_p->m_specTrans : 1.0_r;
-
-        return trans_coeff * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_t);
+        return m_p->m_specTrans * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_t);
     }
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
@@ -323,98 +316,6 @@ public:
         return std::abs(cos_d_i * d * dwh_dwi);
     }
 };
-
-class DisneyInternalReflection : public BaseBXDF
-{
-public:
-    DisneyInternalReflection(const DisneyBSDF* disneyBSDF)
-    : BaseBXDF(disneyBSDF)
-    {
-    }
-
-    vec3 Eval(const vec3 &wo, const vec3 &wi) const override
-    {
-        if (!IsInternalReflection(wo, wi)) {
-            spdlog::error("Not internal reflection");
-            return black;
-        }
-
-        // half direction of refraction, Burley 2015, Eq(1)
-        vec3 wh = -glm::normalize(wo + wi);
-
-        // wh should be in up hemisphere
-        if (wh.z < 0) {
-            spdlog::error("Not internal reflection");
-            return black;
-        }
-
-        // different from Brent Burley's 2015 paper, here wo is light direction
-        // wi is view direction
-        const real cos_o = CosDir(wo);
-        const real cos_i = CosDir(wi);
-
-        // theta_d is the “difference” angle between light (i.e. wi) and the half vector
-        // note wh is assumed to be normal direction in fresnel calculation
-        const real cos_d_o = glm::dot(wo, wh);
-        const real cos_d_i = glm::dot(wi, wh);
-
-        DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
-        const real f = dielectric_fresnel.CalFr(cos_d_o).x;
-
-        // microfacet normal distribution
-        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_trans_alpha_x,
-                                                 m_p->m_trans_alpha_y);
-
-        // geometry mask
-        const real g = mat_func::SmithGGXAnisotropic(wo, wi, m_p->m_trans_alpha_x,
-                                                     m_p->m_trans_alpha_y);
-
-        const real f_ir = f * d * g / (4.0_r * cos_i * cos_o);
-
-        return m_p->m_specTrans * (1.0_r - m_p->m_metallic) * m_p->m_basecolor * std::abs(f_ir);
-    }
-
-    vec3 Sample(const vec3& wo, const vec2& samples) const override
-    {
-        const vec3 wh = mat_func::SampleGTR2(m_p->m_trans_alpha_x, m_p->m_trans_alpha_y, samples);
-        // wh is assumed to be in up hemisphere
-        if (wh.z <= 0) {
-            spdlog::error("Sampled normal direction for internal reflection should be in up hemisphere.");
-            return black;
-        }
-
-        const vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
-        if (wi.z > 0) {
-            return black;
-        }
-        return wi;
-    }
-
-    real Pdf(const vec3 &wo, const vec3 &wi) const override
-    {
-        if (!IsInternalReflection(wo, wi)) {
-            return 0.0_r;
-        }
-
-        // half direction of refraction, Burley 2015, Eq(1)
-        vec3 wh = -glm::normalize(wo + wi);
-
-        // wh should be in up hemisphere
-        if (wh.z < 0) {
-            spdlog::error("Not internal reflection");
-            return 0.0_r;
-        }
-
-        const real cos_d_i = glm::dot(wi, wh);
-
-        // microfacet normal distribution
-        const real d = mat_func::GTR2Anisotropic(wh, m_p->m_trans_alpha_x,
-                                                 m_p->m_trans_alpha_y);
-
-        return std::abs(wh.z * d / (4.0_r * cos_d_i));
-    }
-};
-
 
 class DisneyFakeSS : public BaseBXDF
 {
@@ -503,7 +404,6 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     m_disney_diffuse = MakeUP<DisneyDiffuse>(this);
     m_disney_clearcoat = MakeUP<DisneyClearCoat>(this);
     m_disney_specular_transmission = MakeUP<DisneySpecularTransmission>(this);
-    m_disney_internal_reflection = MakeUP<DisneyInternalReflection>(this);
 }
 
 vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
@@ -518,11 +418,6 @@ vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
     if (wo.z * wi.z < 0 && m_specTrans > 0.0_r) {
         transmission = m_disney_specular_transmission->Eval(wo, wi);
         return transmission;
-    }
-
-    if (wo.z < 0 && wi.z < 0) {
-        internal_reflection = m_disney_internal_reflection->Eval(wo, wi);
-        return internal_reflection;
     }
 
     // diffuse
@@ -551,19 +446,6 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
     real roulette = samples.z;
     vec3 wi = black;
 
-    // transmission or internal reflection
-    if (wo.z < 0) {
-        DisneyDielectricFresnel dielectric_fresnel(m_ior);
-        const real f = dielectric_fresnel.CalFr(wo.z).x;
-
-        if(roulette < f) {
-            wi = m_disney_internal_reflection->Sample(wo, samples);
-        } else {
-            wi = m_disney_specular_transmission->Sample(wo, samples);
-        }
-        return SampleInfoFromWoWi(wo, wi);
-    }
-
     if (roulette < m_w_diffuse_refl) {
         wi = m_disney_diffuse->Sample(wo, samples);
     } else if (roulette < m_w_specular_refl) {
@@ -591,17 +473,6 @@ BSDFSampleInfo DisneyBSDF::SampleInfoFromWoWi(const vec3 &wo, const vec3 &wi) co
 real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
 {
     real total_pdf = 0.0_r;
-
-    // transmission or internal reflection
-    if (wo.z < 0) {
-        DisneyDielectricFresnel dielectric_fresnel(m_ior);
-        const real f = dielectric_fresnel.CalFr(wo.z).x;
-        if (wi.z < 0) {
-            return f * m_disney_internal_reflection->Pdf(wo, wi);
-        } else {
-            return (1.0_r - f) * m_disney_specular_transmission->Pdf(wo, wi);
-        }
-    }
 
     if (m_w_diffuse_refl > 0.0_r)
         total_pdf += m_w_diffuse_refl * m_disney_diffuse->Pdf(wo, wi);

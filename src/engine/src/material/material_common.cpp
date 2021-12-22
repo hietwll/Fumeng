@@ -92,7 +92,7 @@ namespace mat_func{
     real SmithGGXSeprate(const vec3& w, real alpha)
     {
         const real theta = GetSphericalTheta(w);
-        const real tan_theta = std::tan(theta);
+        const real tan_theta = std::abs(std::tan(theta));
 
         if (tan_theta < eps_pdf) {
             return 1.0_r;
