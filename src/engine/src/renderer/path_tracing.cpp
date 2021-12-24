@@ -77,7 +77,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
 
         // sample BSDF
         auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
-        if(glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
+        if(glm::length(bsdf_sample.f) < eps_pdf || bsdf_sample.pdf < eps_pdf) {
             break;
         }
 
@@ -109,7 +109,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
     // sample the light
     auto light_sample = light->Sample(hitPoint, sampler.Get3D());
 
-    if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps) {
+    if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps_pdf) {
         return black;
     }
 
@@ -121,7 +121,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
 
     // calculate bsdf
     auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
-    if (glm::length(bsdf_f) < eps) {
+    if (glm::length(bsdf_f) < eps_pdf) {
         return black;
     }
 
@@ -150,7 +150,7 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
     // sample the light
     auto light_sample = envLight->Sample(hitPoint, sampler.Get3D());
 
-    if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps) {
+    if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps_pdf) {
         return black;
     }
 
@@ -162,7 +162,7 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
 
     // calculate bsdf
     auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
-    if (glm::length(bsdf_f) < eps) {
+    if (glm::length(bsdf_f) < eps_pdf) {
         return black;
     }
 
@@ -184,7 +184,7 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
 {
     // sample bsdf
     auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
-    if (glm::length(bsdf_sample.f) < eps || bsdf_sample.pdf < eps) {
+    if (glm::length(bsdf_sample.f) < eps_pdf || bsdf_sample.pdf < eps_pdf) {
         return black;
     }
 
@@ -226,7 +226,7 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
     auto light = lightHit.object->GetLight();
     auto radiance = light->GetRadiance(lightHit.pos, lightHit.ng, lightHit.uv, light_to_shd);
 
-    if (glm::length(radiance) < eps) {
+    if (glm::length(radiance) < eps_pdf) {
         return black;
     }
 
