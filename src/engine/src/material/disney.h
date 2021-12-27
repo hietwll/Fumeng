@@ -49,6 +49,12 @@ private:
     real m_w_clearcoat;
     real m_w_specular_trans;
 
+    //  cdf
+    real m_c_diffuse_refl;
+    real m_c_specular_refl;
+    real m_c_clearcoat;
+    real m_c_specular_trans;
+
     // submodels
     UP<DisneySpecularReflection> m_disney_specular_reflection;
     UP<DisneyDiffuse> m_disney_diffuse;

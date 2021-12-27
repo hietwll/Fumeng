@@ -43,8 +43,8 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        real sheenTint = 0.0_r,
                                        real clearcoat = 0.0_r,
                                        real clearcoatGloss = 0.0_r,
-                                       real specTrans = 0.0_r,
-                                       real specTransRoughness = 0.0_r,
+                                       real specTrans = 1.0_r,
+                                       real specTransRoughness = 0.45_r,
                                        real diffTrans = 0.0_r,
                                        real flatness = 0.0_r,
                                        real ior = 1.5_r,
@@ -130,7 +130,7 @@ int main()
 
     // textures
     SP<Texture> earth = CreateTexture("earth.png");
-    SP<Texture> sky = CreateTexture("spaichingen_hill_4k.hdr");
+    SP<Texture> sky = CreateTexture("park_4k.hdr");
     SP<EnvLight> envLight = CreateEnvLight(sky);
 
     // left
@@ -141,7 +141,7 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateDisneyObj(0.5_r, vec3(8.0_r, 8.0_r, 0.0_r), black, red);
+    auto mid_a = CreateDisneyObj(0.5_r, vec3(8.0_r, 8.0_r, 0.0_r), black, 0.9_r * white);
 //    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);

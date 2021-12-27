@@ -394,10 +394,15 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     const real w_sum_inv = 1.0_r / (m_w_diffuse_refl + m_w_specular_refl
             + m_w_clearcoat + m_w_specular_trans);
 
-    m_w_diffuse_refl = m_w_diffuse_refl * w_sum_inv;
-    m_w_specular_refl = m_w_specular_refl * w_sum_inv + m_w_diffuse_refl;
-    m_w_clearcoat = m_w_clearcoat * w_sum_inv + m_w_specular_refl;
-    m_w_specular_trans = m_w_specular_trans * w_sum_inv + m_w_clearcoat;
+    m_w_diffuse_refl *= w_sum_inv;
+    m_w_specular_refl *= w_sum_inv;
+    m_w_clearcoat *= w_sum_inv;
+    m_w_specular_trans *= w_sum_inv;
+
+    m_c_diffuse_refl = m_w_diffuse_refl;
+    m_c_specular_refl = m_w_specular_refl + m_c_diffuse_refl;
+    m_c_clearcoat = m_w_clearcoat + m_c_specular_refl;
+    m_c_specular_trans = m_w_specular_trans + m_c_clearcoat;
 
     // submodels
     m_disney_specular_reflection = MakeUP<DisneySpecularReflection>(this);
@@ -446,11 +451,16 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
     real roulette = samples.z;
     vec3 wi = black;
 
-    if (roulette < m_w_diffuse_refl) {
+    if (wo.z < 0) {
+        wi = m_disney_specular_transmission->Sample(wo, samples);
+        return SampleInfoFromWoWi(wo, wi);
+    }
+
+    if (roulette < m_c_diffuse_refl) {
         wi = m_disney_diffuse->Sample(wo, samples);
-    } else if (roulette < m_w_specular_refl) {
+    } else if (roulette < m_c_specular_refl) {
         wi = m_disney_specular_reflection->Sample(wo, samples);
-    } else if (roulette < m_clearcoat) {
+    } else if (roulette < m_c_clearcoat) {
         wi = m_disney_clearcoat->Sample(wo, samples);
     } else {
         wi = m_disney_specular_transmission->Sample(wo, samples);
@@ -473,6 +483,10 @@ BSDFSampleInfo DisneyBSDF::SampleInfoFromWoWi(const vec3 &wo, const vec3 &wi) co
 real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
 {
     real total_pdf = 0.0_r;
+
+    if (wo.z < 0) {
+        return m_disney_specular_transmission->Pdf(wo, wi);
+    }
 
     if (m_w_diffuse_refl > 0.0_r)
         total_pdf += m_w_diffuse_refl * m_disney_diffuse->Pdf(wo, wi);
