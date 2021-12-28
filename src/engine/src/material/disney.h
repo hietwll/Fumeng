@@ -13,7 +13,9 @@ private:
     friend class DisneySpecularReflection;
     friend class DisneyDiffuse;
     friend class DisneyClearCoat;
-    friend class DisneySpecularTransmission;
+    friend class DisneyMicrofacetTransmission;
+    friend class DisneyLambertianTransmission;
+    friend class DisneyFakeSS;
 
     // original parameters
     vec3 m_basecolor;
@@ -42,14 +44,15 @@ private:
     real m_trans_alpha_x;
     real m_trans_alpha_y;
     vec3 m_cspec0;
+    real m_diffuse_weight; // weight for evaluation
 
-    // weight
+    // weight for sampling
     real m_w_diffuse_refl;
     real m_w_specular_refl;
     real m_w_clearcoat;
     real m_w_specular_trans;
 
-    //  cdf
+    //  cdf of weight for sampling
     real m_c_diffuse_refl;
     real m_c_specular_refl;
     real m_c_clearcoat;
@@ -59,7 +62,11 @@ private:
     UP<DisneySpecularReflection> m_disney_specular_reflection;
     UP<DisneyDiffuse> m_disney_diffuse;
     UP<DisneyClearCoat> m_disney_clearcoat;
-    UP<DisneySpecularTransmission> m_disney_specular_transmission;
+    UP<DisneyMicrofacetTransmission> m_disney_specular_transmission;
+    UP<DisneyMicrofacetTransmission> m_disney_rough_transmission;
+    UP<DisneyLambertianTransmission> m_disney_lambert_transmission;
+    UP<DisneyFakeSS> m_disney_fake_ss;
+
 
 public:
     DisneyBSDF(const HitPoint& hit_point,
@@ -97,8 +104,14 @@ public:
     };
     virtual ~BaseBXDF() = default;
     virtual vec3 Eval(const vec3 &wo, const vec3 &wi) const = 0;
-    virtual real Pdf(const vec3 &wo, const vec3 &wi) const = 0;
-    virtual vec3 Sample(const vec3& wo, const vec2& samples) const = 0;
+    virtual real Pdf(const vec3 &wo, const vec3 &wi) const
+    {
+        return 0.0_r;
+    };
+    virtual vec3 Sample(const vec3& wo, const vec2& samples) const
+    {
+        return black;
+    };
     bool IsReflection(const vec3 &wo, const vec3 &wi) const
     {
         return wo.z * wi.z > 0;
