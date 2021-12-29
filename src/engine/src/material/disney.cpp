@@ -442,18 +442,20 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     // weight
     const real basecolor_lum = RGBToLuminance(m_basecolor);
     const real cspec0_lum = RGBToLuminance(m_cspec0);
-    m_w_diffuse_refl = basecolor_lum * (1.0_r - m_metallic) * (1.0_r - m_specTrans);
+    m_w_diffuse_refl = basecolor_lum * m_diffuse_weight * (m_thin ? (1.0_r - m_diffTrans) : 1.0_r);
     m_w_specular_refl = cspec0_lum * 2.0_r;
     m_w_clearcoat = m_clearcoat;
     m_w_specular_trans = basecolor_lum * (1.0_r - m_metallic) * specTrans;
+    m_w_diffuse_trans = m_thin ? basecolor_lum * m_diffuse_weight * m_diffTrans : 0.0_r;
 
     const real w_sum_inv = 1.0_r / (m_w_diffuse_refl + m_w_specular_refl
-            + m_w_clearcoat + m_w_specular_trans);
+            + m_w_clearcoat + m_w_specular_trans + m_w_diffuse_trans);
 
     m_w_diffuse_refl *= w_sum_inv;
     m_w_specular_refl *= w_sum_inv;
     m_w_clearcoat *= w_sum_inv;
     m_w_specular_trans *= w_sum_inv;
+    m_w_diffuse_trans *= w_sum_inv;
 
     m_c_diffuse_refl = m_w_diffuse_refl;
     m_c_specular_refl = m_w_specular_refl + m_c_diffuse_refl;
@@ -521,21 +523,38 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
     vec3 wi = black;
 
     if (wo.z < 0) {
-        wi = m_disney_specular_transmission->Sample(wo, samples);
-        return SampleInfoFromWoWi(wo, wi);
+        if (m_thin) {
+            vec3 wo_inv = vec3(wo.x, wo.y, -wo.z);
+            vec3 wi_inv = RouletteSample(wo_inv, roulette, samples);
+            wi = vec3(wi_inv.x, wi_inv.y, -wi_inv.z);
+
+            real pdf = PdfLocal(wo_inv, wi_inv);
+            vec3 f = CalFuncLocal(wo_inv, wi_inv);
+            return {f, ShadingToWorld(wi), pdf, false};
+        } else {
+            wi = m_disney_specular_transmission->Sample(wo, samples);
+            return SampleInfoFromWoWi(wo, wi);
+        }
     }
 
-    if (roulette < m_c_diffuse_refl) {
-        wi = m_disney_diffuse->Sample(wo, samples);
-    } else if (roulette < m_c_specular_refl) {
-        wi = m_disney_specular_reflection->Sample(wo, samples);
-    } else if (roulette < m_c_clearcoat) {
-        wi = m_disney_clearcoat->Sample(wo, samples);
-    } else {
-        wi = m_disney_specular_transmission->Sample(wo, samples);
-    }
-
+    wi = RouletteSample(wo, roulette, samples);
     return SampleInfoFromWoWi(wo, wi);
+}
+
+vec3 DisneyBSDF::RouletteSample(const vec3 &wo, real roulette, const vec3& samples) const
+{
+    if (roulette < m_c_diffuse_refl) {
+        return m_disney_diffuse->Sample(wo, samples);
+    } else if (roulette < m_c_specular_refl) {
+        return m_disney_specular_reflection->Sample(wo, samples);
+    } else if (roulette < m_c_clearcoat) {
+        return m_disney_clearcoat->Sample(wo, samples);
+    } else if (roulette < m_c_specular_trans){
+        return m_thin ? m_disney_rough_transmission->Sample(wo, samples) :
+                m_disney_specular_transmission->Sample(wo, samples);
+    } else {
+        return m_disney_lambert_transmission->Sample(wo, samples);
+    }
 }
 
 BSDFSampleInfo DisneyBSDF::SampleInfoFromWoWi(const vec3 &wo, const vec3 &wi) const
@@ -567,7 +586,11 @@ real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
         total_pdf += m_w_clearcoat * m_disney_clearcoat->Pdf(wo, wi);
 
     if (m_w_specular_trans > 0.0_r)
-        total_pdf += m_w_specular_trans * m_disney_specular_transmission->Pdf(wo, wi);
+        total_pdf += m_w_specular_trans * (m_thin ? m_disney_rough_transmission->Pdf(wo, wi) :
+                m_disney_specular_transmission->Pdf(wo, wi));
+
+    if (m_w_diffuse_trans > 0.0_r)
+        total_pdf += m_w_diffuse_trans * m_disney_lambert_transmission->Pdf(wo, wi);
 
     return total_pdf;
 }

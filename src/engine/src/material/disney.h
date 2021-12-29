@@ -51,6 +51,7 @@ private:
     real m_w_specular_refl;
     real m_w_clearcoat;
     real m_w_specular_trans;
+    real m_w_diffuse_trans;
 
     //  cdf of weight for sampling
     real m_c_diffuse_refl;
@@ -91,6 +92,7 @@ public:
     real PdfLocal(const vec3& wo, const vec3& wi) const override;
     BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override;
     BSDFSampleInfo SampleInfoFromWoWi(const vec3& wo, const vec3& wi) const;
+    vec3 RouletteSample(const vec3& wo, real roulette, const vec3& samples) const;
 };
 
 class BaseBXDF
