@@ -119,7 +119,7 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 512.0_r;
-    int width = 4096;
+    int width = 2048;
     SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
                                                   vec3(1.0_r, 1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),

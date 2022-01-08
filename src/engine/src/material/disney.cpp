@@ -486,7 +486,7 @@ vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
     vec3 ret = black;
 
     // handle transmission
-    if (wo.z * wi.z < 0 && m_specTrans > 0.0_r) {
+    if (wo.z * wi.z < 0) {
         if (m_thin) {
             ret += m_disney_rough_transmission->Eval(wo, wi);
             ret += m_disney_lambert_transmission->Eval(wo, wi);
