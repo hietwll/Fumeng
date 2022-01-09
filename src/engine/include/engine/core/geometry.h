@@ -28,6 +28,7 @@ public:
     /**
      * Get the HitPoint information if there is a intersection
      * Both Ray and HitPoint should be in world space
+     * Ray is in world space
      */
     virtual bool GetIntersect(const Ray &r, HitPoint *hit_point) const = 0;
 
