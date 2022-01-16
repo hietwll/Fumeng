@@ -10,7 +10,7 @@ class Transform
 private:
     mat4 matrix_, inv_;
 public:
-    Transform() = default;
+    Transform(): matrix_(1.0_r), inv_(1.0_r) {};
     Transform(const mat4& mat);
     Transform(const mat4& mat, const mat4& inv_mat);
     Transform(const vec3& translation, const vec3& rotation, const vec3& scale = vec3(1.0_r, 1.0_r, 1.0_r));

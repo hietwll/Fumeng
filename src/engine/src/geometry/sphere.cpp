@@ -190,7 +190,7 @@ public:
     /*
      * Get the area
      */
-    real Area() const
+    real Area() const override
     {
         return area;
     }

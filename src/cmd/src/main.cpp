@@ -30,6 +30,18 @@ SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>
     return renderObject;
 }
 
+std::vector<SP<const RenderObject>> CreateLambertMesh(const std::string filename, const vec3& color)
+{
+    SP<Texture> basecolor_tex = CreateConstantTexture(color);
+    auto triangles = CreateTriangleMesh(filename);
+    SP<const Material> material = CreateLambertDiffuse(basecolor_tex);
+    std::vector<SP<const RenderObject>> objects;
+    for(auto& tri : triangles) {
+        objects.push_back(CreateRenderObject(tri, material, black));
+    }
+    return objects;
+}
+
 SP<const RenderObject> CreateDisneyObj(real radius,
                                        const vec3& pos,
                                        const vec3& emission = black,
@@ -146,6 +158,8 @@ int main()
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);
 
+
+
 //    objects.push_back(left);
 //    objects.push_back(right);
 //    objects.push_back(back);
@@ -154,11 +168,13 @@ int main()
 //    objects.push_back(bottom);
 //    objects.push_back(top);
 
-    objects.push_back(mid_a);
+//    objects.push_back(mid_a);
 //    objects.push_back(mid_b);
 //    objects.push_back(light);
 
-    SP<const Aggregate> aggregate = CreateSimpleAggregate(objects);
+    auto triObjs = CreateLambertMesh("sphere.obj", red);
+
+    SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
     SP<Scene> scene = CreateSimpleScene(camera, aggregate);
     scene->SetEnvLight(envLight);
 
