@@ -46,7 +46,7 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        const vec3& pos,
                                        const vec3& emission = black,
                                        const vec3& basecolor = red,
-                                       real metallic = 0.0_r,
+                                       real metallic = 1.0_r,
                                        real specular = 0.0_r,
                                        real specularTint = 0.0_r,
                                        real roughness = 0.0_r,
@@ -57,10 +57,10 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        real clearcoatGloss = 0.0_r,
                                        real specTrans = 0.0_r,
                                        real specTransRoughness = 0.0_r,
-                                       real diffTrans = 1.0_r,
+                                       real diffTrans = 0.0_r,
                                        real flatness = 0.0_r,
                                        real ior = 1.5_r,
-                                       real thin = true)
+                                       real thin = false)
 {
     SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
     SP<Texture> metallic_tex = CreateConstantTexture(metallic);
@@ -131,9 +131,9 @@ int main()
 {
     // camera
     real aspect_ratio = 1024_r / 512.0_r;
-    int width = 2048;
-    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 0.0_r, 0.0_r),
-                                                  vec3(1.0_r, 1.0_r, 0.0_r),
+    int width = 1024;
+    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
+                                                  vec3(0.0_r, -1.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
                                             1.0_r, DegToRad(30.0_r), aspect_ratio);
 
@@ -153,7 +153,7 @@ int main()
     auto bottom = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, -1e5_r - 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
     auto top = CreateObj(1e5_r, vec3(0.0_r, 0.0_r, 1e5_r + 2.0_r), vec3(0.75_r, 0.75_r, 0.75_r));
 
-    auto mid_a = CreateDisneyObj(0.5_r, vec3(8.0_r, 8.0_r, 0.0_r), black, 0.9_r * blue);
+    auto mid_a = CreateDisneyObj(0.5_r, vec3(0.0_r, 0.0_r, 0.0_r), black, 0.9_r * red);
 //    auto mid_b = CreateMirror(0.5_r, vec3(10.0_r, 0.0_r, -1.0_r), vec3(0.99_r), vec3(1.0_r), vec3(1.5_r), white);
 
     auto light = CreateObj(3.0_r, vec3(0.0_r, -5.0_r, 8.0_r), white, white * 10.0_r);
@@ -168,11 +168,11 @@ int main()
 //    objects.push_back(bottom);
 //    objects.push_back(top);
 
-//    objects.push_back(mid_a);
+    objects.push_back(mid_a);
 //    objects.push_back(mid_b);
 //    objects.push_back(light);
 
-    auto triObjs = CreateLambertMesh("sphere.obj", red);
+    auto triObjs = CreateLambertMesh("Sphere.obj", red);
 
     SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
     SP<Scene> scene = CreateSimpleScene(camera, aggregate);

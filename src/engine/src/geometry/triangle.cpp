@@ -116,7 +116,7 @@ bool Triangle::IntersectTriangle(const Ray &r, vec3& bc, real& t) const
     int ay = (ax + 1) % 3;
 
     // pick max axis
-    vec3 dir = Permute(r.ori, ax, ay, az);
+    vec3 dir = Permute(r.dir, ax, ay, az);
     v0 = Permute(v0, ax, ay, az);
     v1 = Permute(v1, ax, ay, az);
     v2 = Permute(v2, ax, ay, az);
@@ -160,7 +160,7 @@ bool Triangle::IntersectTriangle(const Ray &r, vec3& bc, real& t) const
     v2.z *= sz;
 
     const real invDet = 1.0_r / det;
-    t = (e0 * GetPos(m_idx0).z + e1 * GetPos(m_idx1).z + e2 * GetPos(m_idx2).z) * invDet;
+    t = (e0 * v0.z + e1 * v1.z + e2 * v2.z) * invDet;
 
     if (t <= r.t_min || t >= r.t_max) {
         return false;
