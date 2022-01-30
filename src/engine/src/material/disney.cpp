@@ -370,7 +370,7 @@ public:
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
         vec3 wi = CosineWeightedHemiSphere(samples);
-        return wo.z > 0 ? -wi : wi;
+        return wo.z * wi.z > 0 ? -wi : wi;
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override

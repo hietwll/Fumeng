@@ -30,11 +30,61 @@ SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>
     return renderObject;
 }
 
-std::vector<SP<const RenderObject>> CreateLambertMesh(const std::string filename, const vec3& color)
+std::vector<SP<const RenderObject>> CreateDisneyMesh(
+        const std::string filename,
+        const vec3& emission = black,
+        const vec3& basecolor = vec3(0.0_r, 1.0_r, 0.126_r),
+        real metallic = 0.0_r,
+        real specular = 0.0_r,
+        real specularTint = 0.0_r,
+        real roughness = 0.0_r,
+        real anisotropic = 0.0_r,
+        real sheen = 0.0_r,
+        real sheenTint = 0.0_r,
+        real clearcoat = 0.0_r,
+        real clearcoatGloss = 0.0_r,
+        real specTrans = 0.0_r,
+        real specTransRoughness = 0.0_r,
+        real diffTrans = 1.0_r,
+        real flatness = 0.0_r,
+        real ior = 1.5_r,
+        real thin = true)
 {
-    SP<Texture> basecolor_tex = CreateConstantTexture(color);
+    SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
+    SP<Texture> metallic_tex = CreateConstantTexture(metallic);
+    SP<Texture> specular_tex = CreateConstantTexture(specular);
+    SP<Texture> specularTint_tex = CreateConstantTexture(specularTint);
+    SP<Texture> roughness_tex = CreateConstantTexture(roughness);
+    SP<Texture> anisotropic_tex = CreateConstantTexture(anisotropic);
+    SP<Texture> sheen_tex = CreateConstantTexture(sheen);
+    SP<Texture> sheenTint_tex = CreateConstantTexture(sheenTint);
+    SP<Texture> clearcoat_tex = CreateConstantTexture(clearcoat);
+    SP<Texture> clearcoatGloss_tex = CreateConstantTexture(clearcoatGloss);
+    SP<Texture> specTrans_tex = CreateConstantTexture(specTrans);
+    SP<Texture> specTransRoughness_tex = CreateConstantTexture(specTransRoughness);
+    SP<Texture> diffTrans_tex = CreateConstantTexture(diffTrans);
+    SP<Texture> flatness_tex = CreateConstantTexture(flatness);
+    SP<Texture> ior_tex = CreateConstantTexture(ior);
+
+    SP<const Material> material = CreateDisneyMaterial(
+            basecolor_tex,
+            metallic_tex,
+            specular_tex,
+            specularTint_tex,
+            roughness_tex,
+            anisotropic_tex,
+            sheen_tex,
+            sheenTint_tex,
+            clearcoat_tex,
+            clearcoatGloss_tex,
+            specTrans_tex,
+            specTransRoughness_tex,
+            diffTrans_tex,
+            flatness_tex,
+            ior_tex,
+            thin);
+
     auto triangles = CreateTriangleMesh(filename);
-    SP<const Material> material = CreateLambertDiffuse(basecolor_tex);
     std::vector<SP<const RenderObject>> objects;
     for(auto& tri : triangles) {
         objects.push_back(CreateRenderObject(tri, material, black));
@@ -132,8 +182,8 @@ int main()
     // camera
     real aspect_ratio = 1024_r / 512.0_r;
     int width = 1024;
-    SP<const Camera> camera = CreatePinPoleCamera(vec3 (0.0_r, 8.0_r, 0.0_r),
-                                                  vec3(0.0_r, -1.0_r, 0.0_r),
+    SP<const Camera> camera = CreatePinPoleCamera(vec3 (-8.0_r, 0.0_r, 0.0_r),
+                                                  vec3(1.0_r, 0.0_r, 0.0_r),
                                             vec3(0.0, 0.0, 1.0_r),
                                             1.0_r, DegToRad(30.0_r), aspect_ratio);
 
@@ -172,7 +222,7 @@ int main()
 //    objects.push_back(mid_b);
 //    objects.push_back(light);
 
-    auto triObjs = CreateLambertMesh("Sphere.obj", red);
+    auto triObjs = CreateDisneyMesh("Plane.obj");
 
     SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
     SP<Scene> scene = CreateSimpleScene(camera, aggregate);

@@ -43,7 +43,7 @@ vec3 Triangle::GetNormal(const vidx& idx) const
     
 vec2 Triangle::GetUV(const vidx& idx) const
 {
-    if (m_mesh->m_hasUV) {
+    if (idx.texcoord_index >= 0) {
         size_t bg = 2 * idx.texcoord_index;
         return {m_mesh->attrib.texcoords[bg], m_mesh->attrib.texcoords[bg + 1]};
     } else {
@@ -83,7 +83,9 @@ bool Triangle::GetIntersect(const Ray &r, HitPoint *hit_point) const
     hit_point->uv.x = uv.x;
     hit_point->uv.y = uv.y;
 
-    if (m_mesh->m_hasNormal) {
+    if (m_idx0.normal_index >= 0 &&
+        m_idx1.normal_index >= 0 &&
+        m_idx2.normal_index >= 0) {
         hit_point->ng = bc.x * GetNormal(m_idx0) +
                         bc.y * GetNormal(m_idx1) +
                         bc.z * GetNormal(m_idx2);
@@ -192,7 +194,9 @@ HitPoint Triangle::Sample(real *pdf, const vec3 &sample) const
     hitPoint.uv.x = uv.x;
     hitPoint.uv.y = uv.y;
 
-    if (m_mesh->m_hasNormal) {
+    if (m_idx0.normal_index >= 0 &&
+        m_idx1.normal_index >= 0 &&
+        m_idx2.normal_index >= 0) {
         hitPoint.ng = b0 * GetNormal(m_idx0) +
                       b1 * GetNormal(m_idx1) +
                       b2 * GetNormal(m_idx2);
