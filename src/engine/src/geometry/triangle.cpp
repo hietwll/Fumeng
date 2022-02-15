@@ -240,6 +240,21 @@ vec3 Triangle::Permute(const vec3& v, int x, int y, int z) const
     return vec3(v[x], v[y], v[z]);
 }
 
+BBox Triangle::WorldBound() const
+{
+    BBox box;
+
+    vec3 v0 = GetPos(m_idx0);
+    vec3 v1 = GetPos(m_idx1);
+    vec3 v2 = GetPos(m_idx2);
+
+    box |= v0;
+    box |= v1;
+    box |= v2;
+
+    return box;
+}
+
 std::vector<SP<const Geometry>> CreateTriangleMesh(const std::string& filename)
 {
     auto mesh = MakeSP<TriangleMesh>(filename);

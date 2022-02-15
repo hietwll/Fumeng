@@ -205,6 +205,12 @@ public:
         const real c = SquareSum(r.ori) - radius * radius;
         return {a, b, c};
     }
+
+    BBox WorldBound() const override
+    {
+        const vec3 center_world = object_to_world.ApplyToPoint(black);
+        return {center_world - vec3(radius_world), center_world + vec3(radius_world)};
+    }
 };
 
 SP<Geometry> CreateSphere(real radius, const Transform& to_world)

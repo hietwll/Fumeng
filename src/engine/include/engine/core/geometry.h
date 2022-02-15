@@ -3,6 +3,7 @@
 
 #include <engine/common.h>
 #include <engine/core/transform.h>
+#include <engine/core/bbox.h>
 
 FM_ENGINE_BEGIN
 
@@ -64,6 +65,11 @@ public:
      * Get the pdf of w.r.t. area by sampling the point visible by ref
      */
     virtual real Pdf(const vec3& shd_pos, const vec3& sample) const = 0;
+
+    /**
+     * Get bounding box in world space
+     */
+     virtual BBox WorldBound() const = 0;
 };
 
 FM_ENGINE_END

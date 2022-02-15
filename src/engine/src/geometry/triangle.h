@@ -44,6 +44,7 @@ public:
     real Area() const override;
     int GetMaxAxis(const vec3& v) const;
     vec3 Permute(const vec3& v, int x, int y, int z) const;
+    BBox WorldBound() const override;
 }
 ;
 

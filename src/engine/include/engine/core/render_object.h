@@ -7,6 +7,7 @@
 #include <engine/core/light.h>
 #include <engine/core/utils.h>
 #include <engine/core/hit_point.h>
+#include <engine/core/bbox.h>
 
 #include <vector>
 
@@ -63,6 +64,11 @@ public:
     const AreaLight* GetLight() const
     {
         return area_light.get();
+    }
+
+    BBox WorldBound() const noexcept
+    {
+        return geometry->WorldBound();
     }
 };
 
