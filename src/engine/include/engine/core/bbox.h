@@ -38,6 +38,21 @@ public:
         }
         return *this;
     }
+
+    size_t MaxSpanAxis() const
+    {
+        real max_len = 0_r;
+        size_t axis = 0;
+        for(size_t i = 0; i < 3; ++i) {
+            const real axis_len = m_max[i] - m_min[i];
+
+            if(axis_len > max_len) {
+                max_len = axis_len;
+                axis = i;
+            }
+        }
+        return axis;
+    }
 };
 
 inline BBox operator|(const BBox& lhs, const BBox& rhs)
