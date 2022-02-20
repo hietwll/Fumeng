@@ -2,6 +2,8 @@
 #define FM_ENGINE_BBOX_H
 
 #include <engine/common.h>
+#include <engine/core/ray.h>
+#include <engine/core/utils.h>
 
 FM_ENGINE_BEGIN
 
@@ -12,7 +14,7 @@ public:
     vec3 m_max;
 
     BBox() noexcept :
-    m_min(REAL_MIN), m_max(REAL_MAX)
+    m_min(REAL_MAX), m_max(REAL_MIN)
     {
     }
 
@@ -23,7 +25,7 @@ public:
 
     BBox& operator|=(const vec3& p)
     {
-        for(size_t i = 0 ; i < 3; i++){
+        for(int i = 0 ; i < 3; i++){
             m_min[i] = std::min(p[i], m_min[i]);
             m_max[i] = std::max(p[i], m_max[i]);
         }
@@ -32,18 +34,18 @@ public:
 
     BBox& operator|=(const BBox& box)
     {
-        for(size_t i = 0 ; i < 3; i++){
+        for(int i = 0 ; i < 3; i++){
             m_min[i] = std::min(box.m_min[i], m_min[i]);
             m_max[i] = std::max(box.m_max[i], m_max[i]);
         }
         return *this;
     }
 
-    size_t MaxSpanAxis() const
+    int MaxSpanAxis() const
     {
         real max_len = 0_r;
-        size_t axis = 0;
-        for(size_t i = 0; i < 3; ++i) {
+        int axis = 0;
+        for(int i = 0; i < 3; ++i) {
             const real axis_len = m_max[i] - m_min[i];
 
             if(axis_len > max_len) {
@@ -52,6 +54,18 @@ public:
             }
         }
         return axis;
+    }
+
+    bool IsIntersect(const Ray& r, const vec3& dir_inv) const
+    {
+        const vec3 low = dir_inv * (m_min - r.ori);
+        const vec3 hig = dir_inv * (m_max - r.ori);
+
+        const vec3 min_lh = MinVec(low, hig);
+        const vec3 max_lh = MaxVec(low, hig);
+
+        return MaxElem(MaxVec(vec3(r.t_min), min_lh)) <=
+               MinElem(MinVec(vec3(r.t_max), max_lh));
     }
 };
 

@@ -217,6 +217,25 @@ inline real AbsCosDir(const vec3& wi)
     return std::abs(CosDir(wi));
 }
 
+inline vec3 MinVec(const vec3& lhs, const vec3& rhs)
+{
+    return vec3(std::min(lhs.x, rhs.x), std::min(lhs.y, rhs.y), std::min(lhs.z, rhs.z));
+}
+
+inline vec3 MaxVec(const vec3& lhs, const vec3& rhs)
+{
+    return vec3(std::max(lhs.x, rhs.x), std::max(lhs.y, rhs.y), std::max(lhs.z, rhs.z));
+}
+
+inline real MaxElem(const vec3& v)
+{
+    return v.x > v.y ? (v.x > v.z ? v.x : v.z) : (v.y > v.z ? v.y : v.z);
+}
+
+inline real MinElem(const vec3& v)
+{
+    return v.x < v.y ? (v.x < v.z ? v.x : v.z) : (v.y < v.z ? v.y : v.z);
+}
 
 FM_ENGINE_END
 

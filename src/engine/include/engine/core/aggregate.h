@@ -2,14 +2,19 @@
 #define FM_ENGINE_AGGREGATE_H
 
 #include <engine/common.h>
-
+#include <engine/core/render_object.h>
 #include <vector>
 
 FM_ENGINE_BEGIN
 
 class Aggregate
 {
+protected:
+    std::vector<SP<const RenderObject>> m_objects;
+
 public:
+    Aggregate(const std::vector<SP<const RenderObject>>& objects) : m_objects(objects) {};
+
     virtual ~Aggregate() = default;
 
     /**
@@ -24,7 +29,12 @@ public:
      */
     virtual bool GetIntersect(const Ray &r, HitPoint *hit_point) const = 0;
 
-    virtual void ConstructAreaLight(std::vector<SP<const Light>>& lights) const = 0;
+    virtual void ConstructAreaLight(std::vector<SP<const Light>>& lights) const
+    {
+        for(auto& obj : m_objects) {
+            obj.get()->ConstructAreaLight(lights);
+        }
+    };
 };
 
 FM_ENGINE_END

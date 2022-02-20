@@ -1,23 +1,18 @@
 #include <engine/core/aggregate.h>
-#include <engine/core/render_object.h>
 #include <engine/core/ray.h>
 
 FM_ENGINE_BEGIN
 
 class SimpleAggregate : public Aggregate
 {
-private:
-    std::vector<SP<const RenderObject>> objects;
-
 public:
-    SimpleAggregate(const std::vector<SP<const RenderObject>>& objects_)
+    SimpleAggregate(const std::vector<SP<const RenderObject>>& objects) : Aggregate(objects)
     {
-        objects = objects_;
     }
 
     bool IsIntersect(const Ray &r) const override
     {
-        for(const auto& obj : objects) {
+        for(const auto& obj : m_objects) {
             if(obj->IsIntersect(r)) {
                 return true;
             }
@@ -29,20 +24,13 @@ public:
     {
         Ray ray = r;
         bool res = false;
-        for(const auto& obj : objects) {
+        for(const auto& obj : m_objects) {
             if(obj->GetIntersect(ray, hit_point)) {
                 ray.t_max = hit_point->t; // to find the closest hit point
                 res = true;
             }
         }
         return res;
-    }
-
-    void ConstructAreaLight(std::vector<SP<const Light>>& lights) const override
-    {
-        for(auto& obj : objects) {
-            obj.get()->ConstructAreaLight(lights);
-        }
     }
 };
 

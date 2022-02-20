@@ -33,7 +33,7 @@ SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>
 std::vector<SP<const RenderObject>> CreateDisneyMesh(
         const std::string filename,
         const vec3& emission = black,
-        const vec3& basecolor = vec3(0.0_r, 1.0_r, 0.126_r),
+        const vec3& basecolor = vec3(1.0_r, 0.0_r, 0.0_r),
         real metallic = 0.0_r,
         real specular = 0.0_r,
         real specularTint = 0.0_r,
@@ -48,7 +48,7 @@ std::vector<SP<const RenderObject>> CreateDisneyMesh(
         real diffTrans = 1.0_r,
         real flatness = 0.0_r,
         real ior = 1.5_r,
-        real thin = true)
+        real thin = false)
 {
     SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
     SP<Texture> metallic_tex = CreateConstantTexture(metallic);
@@ -222,10 +222,12 @@ int main()
 //    objects.push_back(mid_b);
 //    objects.push_back(light);
 
-    auto triObjs = CreateDisneyMesh("Plane.obj");
+    auto triObjs = CreateDisneyMesh("PlaneFine.obj");
 
-    SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
+    SP<const Aggregate> aggregate = CreateBVHAggregate(triObjs);
+//    SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
     SP<Scene> scene = CreateSimpleScene(camera, aggregate);
+
     scene->SetEnvLight(envLight);
 
     SP<Renderer> renderer = CreatePathTracingRenderer(width, int(real(width) / aspect_ratio));
