@@ -63,7 +63,7 @@ private:
         int split_axis = box_root.MaxSpanAxis();
 
         // sort the info array
-        std::sort(m_objInfos.begin(), m_objInfos.end(), [&](const ObjInfo& a, const ObjInfo& b){
+        std::sort(m_objInfos.begin() + start, m_objInfos.begin() + end, [&](const ObjInfo& a, const ObjInfo& b){
             return a.box.m_min[split_axis] + a.box.m_max[split_axis] < b.box.m_min[split_axis] + b.box.m_max[split_axis];
         });
 
