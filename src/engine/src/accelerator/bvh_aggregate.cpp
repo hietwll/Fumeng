@@ -115,8 +115,10 @@ private:
             }
             return ret;
         } else { //interior node
-            return GetIntersectImpl(r, dir_inv, m_nodes[node.idx_a], hit_point) ||
-                   GetIntersectImpl(r, dir_inv, m_nodes[node.idx_b], hit_point);
+            // must go through
+            auto left = GetIntersectImpl(r, dir_inv, m_nodes[node.idx_a], hit_point);
+            auto right = GetIntersectImpl(r, dir_inv, m_nodes[node.idx_b], hit_point);
+            return left || right;
         }
     }
 

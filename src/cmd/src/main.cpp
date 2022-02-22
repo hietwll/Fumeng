@@ -222,7 +222,7 @@ int main()
 //    objects.push_back(mid_b);
 //    objects.push_back(light);
 
-    auto triObjs = CreateDisneyMesh("Sphere.obj");
+    auto triObjs = CreateDisneyMesh("DamagedHelmet.obj");
 
     SP<const Aggregate> aggregate = CreateBVHAggregate(triObjs);
 //    SP<const Aggregate> aggregate = CreateSimpleAggregate(triObjs);
