@@ -655,10 +655,10 @@ public:
     void CreateBSDF(HitPoint &hit_point) const override
     {
         const vec3 basecolor = m_basecolor->Sample(hit_point.uv);
-        const real metallic = m_metallic->Sample(hit_point.uv).x;
+        const real metallic = m_metallic->Sample(hit_point.uv).z;
         const real specular = m_specular->Sample(hit_point.uv).x;
         const real specularTint = m_specularTint->Sample(hit_point.uv).x;
-        const real roughness = m_roughness->Sample(hit_point.uv).x;
+        const real roughness = m_roughness->Sample(hit_point.uv).y;
         const real anisotropic = m_anisotropic->Sample(hit_point.uv).x;
         const real sheen = m_sheen->Sample(hit_point.uv).x;
         const real sheenTint = m_sheenTint->Sample(hit_point.uv).x;

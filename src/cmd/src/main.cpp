@@ -30,12 +30,20 @@ SP<const RenderObject> CreateObj(real radius, const vec3& pos, const SP<Texture>
     return renderObject;
 }
 
+SP<Texture> CreateTexture(std::string path)
+{
+    std::string wrap_mode = "repeat";
+    std::string sample_mode = "linear";
+
+    return CreateImageTexture(path, wrap_mode, wrap_mode, sample_mode);
+}
+
 std::vector<SP<const RenderObject>> CreateDisneyMesh(
         const std::string filename,
         const vec3& emission = black,
         const vec3& basecolor = vec3(1.0_r, 0.0_r, 0.0_r),
         real metallic = 0.0_r,
-        real specular = 0.0_r,
+        real specular = 0.5_r,
         real specularTint = 0.0_r,
         real roughness = 0.0_r,
         real anisotropic = 0.0_r,
@@ -50,11 +58,11 @@ std::vector<SP<const RenderObject>> CreateDisneyMesh(
         real ior = 1.5_r,
         real thin = false)
 {
-    SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
-    SP<Texture> metallic_tex = CreateConstantTexture(metallic);
+    SP<Texture> basecolor_tex = CreateTexture("basecolor.png");
+    SP<Texture> metallic_tex = CreateTexture("mr.png");
     SP<Texture> specular_tex = CreateConstantTexture(specular);
     SP<Texture> specularTint_tex = CreateConstantTexture(specularTint);
-    SP<Texture> roughness_tex = CreateConstantTexture(roughness);
+    SP<Texture> roughness_tex = metallic_tex;
     SP<Texture> anisotropic_tex = CreateConstantTexture(anisotropic);
     SP<Texture> sheen_tex = CreateConstantTexture(sheen);
     SP<Texture> sheenTint_tex = CreateConstantTexture(sheenTint);
@@ -112,7 +120,7 @@ SP<const RenderObject> CreateDisneyObj(real radius,
                                        real ior = 1.5_r,
                                        real thin = false)
 {
-    SP<Texture> basecolor_tex = CreateConstantTexture(basecolor);
+    SP<Texture> basecolor_tex = CreateTexture("basecolor.png");
     SP<Texture> metallic_tex = CreateConstantTexture(metallic);
     SP<Texture> specular_tex = CreateConstantTexture(specular);
     SP<Texture> specularTint_tex = CreateConstantTexture(specularTint);
@@ -167,14 +175,6 @@ SP<const RenderObject> CreateGlass(real radius, const vec3& pos, const vec3& col
     SP<const Geometry> sphere = CreateSphere(radius, trs);
     SP<const RenderObject> renderObject = CreateRenderObject(sphere, material, black);
     return renderObject;
-}
-
-SP<Texture> CreateTexture(std::string path)
-{
-    std::string wrap_mode = "repeat";
-    std::string sample_mode = "linear";
-
-    return CreateImageTexture(path, wrap_mode, wrap_mode, sample_mode);
 }
 
 int main()

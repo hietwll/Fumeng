@@ -45,7 +45,7 @@ vec2 Triangle::GetUV(const vidx& idx) const
 {
     if (idx.texcoord_index >= 0) {
         size_t bg = 2 * idx.texcoord_index;
-        return {m_mesh->attrib.texcoords[bg], m_mesh->attrib.texcoords[bg + 1]};
+        return {m_mesh->attrib.texcoords[bg], 1.0_r - m_mesh->attrib.texcoords[bg + 1]};
     } else {
         return {0.0_r, 0.0_r};
     }
