@@ -1,6 +1,7 @@
 #include <engine/core/camera.h>
 #include <engine/core/transform.h>
 #include <engine/core/ray.h>
+#include <engine/core/utils.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 FM_ENGINE_BEGIN
@@ -11,7 +12,7 @@ private:
     vec3 pos_; // world space
     vec3 look_at_; // world space
     vec3 up_; // world space
-    real fov_;
+    real fov_; // Degree
     real aspect_ = 1.0_r;
     real focal_distance_;
     real film_width_ = 1.0_r;
@@ -25,11 +26,11 @@ public:
 
 PinHoleCamera::PinHoleCamera(const vec3 &pos, const vec3 &look_at, const vec3 &up, real focal_distance, real fov,
                              real aspect)
-                             : pos_(pos), look_at_(glm::normalize(look_at)), up_(glm::normalize(up)),
+                             : pos_(pos), look_at_(look_at), up_(glm::normalize(up)),
                              focal_distance_(focal_distance), fov_(fov), aspect_(aspect)
 {
-    camera_to_world = Transform(glm::lookAt(pos_, look_at_, up_)).InvTransform(); //LookAt(pos_, look_at_, up_);//
-    film_height_ = 2.0_r * focal_distance_ * std::tan(fov_ / 2.0_r);
+    camera_to_world = Transform(glm::lookAt(pos_, look_at_, up_)).InvTransform(); //LookAt(pos_, look_at_, up_);
+    film_height_ = 2.0_r * focal_distance_ * std::tan(DegToRad(fov_) / 2.0_r);
     film_width_ = aspect_ * film_height_;
 }
 

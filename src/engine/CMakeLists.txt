@@ -14,4 +14,4 @@ SET(ENGINE_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include/")
 
 TARGET_INCLUDE_DIRECTORIES(Engine PUBLIC ${ENGINE_INCLUDE_DIRS})
 
-TARGET_LINK_LIBRARIES(Engine PUBLIC glm spdlog_header_only thread_pool tiny_obj_loader)
+TARGET_LINK_LIBRARIES(Engine PUBLIC glm spdlog_header_only thread_pool tiny_obj_loader nlohmann_json)
