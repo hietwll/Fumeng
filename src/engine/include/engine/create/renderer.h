@@ -5,7 +5,7 @@
 
 FM_ENGINE_BEGIN
 
-SP<Renderer> CreatePathTracingRenderer(int w, int h);
+SP<Renderer> CreatePathTracer(const PathTracerConfig& config);
 
 FM_ENGINE_END
 

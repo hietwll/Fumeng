@@ -18,7 +18,7 @@ ABOUT:
    written by a decent optimizing implementation; though providing a custom
    zlib compress function (see STBIW_ZLIB_COMPRESS) can mitigate that.
    This library is designed for source code compactness and simplicity,
-   not optimal image file size or run-time performance.
+   not optimal m_image file size or run-time performance.
 
 BUILDING:
 
@@ -42,7 +42,7 @@ UNICODE:
 
 USAGE:
 
-   There are five functions, one for each image file format:
+   There are five functions, one for each m_image file format:
 
      int stbi_write_png(char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
      int stbi_write_bmp(char const *filename, int w, int h, int comp, const void *data);
@@ -76,7 +76,7 @@ USAGE:
 
    Each function returns 0 on failure and non-0 on success.
 
-   The functions create an image file defined by the parameters. The image
+   The functions create an m_image file defined by the parameters. The m_image
    is a rectangle of pixels stored from left-to-right, top-to-bottom.
    Each pixel contains 'comp' channels of data stored interleaved with 8-bits
    per channel, in the following order: 1=Y, 2=YA, 3=RGB, 4=RGBA. (Y is
@@ -90,7 +90,7 @@ USAGE:
    output alpha.
 
    PNG supports writing rectangles of data even when the bytes storing rows of
-   data are not consecutive in memory (e.g. sub-rectangles of a larger image),
+   data are not consecutive in memory (e.g. sub-rectangles of a larger m_image),
    by supplying the stride between the beginning of adjacent rows. The other
    formats do not. (Thus you cannot write a native-format BMP through the BMP
    writer, both because it is in BGR order and because it may have padding
@@ -107,7 +107,7 @@ USAGE:
    data, set the global variable 'stbi_write_tga_with_rle' to 0.
 
    JPEG does ignore alpha channels in input data; quality is between 1 and 100.
-   Higher quality looks better but results in a bigger image.
+   Higher quality looks better but results in a bigger m_image.
    JPEG baseline (no JPEG progressive).
 
 CREDITS:
@@ -1535,11 +1535,11 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height, in
             for(x = 0; x < width; x += 16) {
                float Y[256], U[256], V[256];
                for(row = y, pos = 0; row < y+16; ++row) {
-                  // row >= height => use last input row
+                  // row >= m_height => use last input row
                   int clamped_row = (row < height) ? row : height - 1;
                   int base_p = (stbi__flip_vertically_on_write ? (height-1-clamped_row) : clamped_row)*width*comp;
                   for(col = x; col < x+16; ++col, ++pos) {
-                     // if col >= width => use pixel from last input column
+                     // if col >= m_width => use pixel from last input column
                      int p = base_p + ((col < width) ? col : (width-1))*comp;
                      float r = dataR[p], g = dataG[p], b = dataB[p];
                      Y[pos]= +0.29900f*r + 0.58700f*g + 0.11400f*b - 128;
@@ -1573,11 +1573,11 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height, in
             for(x = 0; x < width; x += 8) {
                float Y[64], U[64], V[64];
                for(row = y, pos = 0; row < y+8; ++row) {
-                  // row >= height => use last input row
+                  // row >= m_height => use last input row
                   int clamped_row = (row < height) ? row : height - 1;
                   int base_p = (stbi__flip_vertically_on_write ? (height-1-clamped_row) : clamped_row)*width*comp;
                   for(col = x; col < x+8; ++col, ++pos) {
-                     // if col >= width => use pixel from last input column
+                     // if col >= m_width => use pixel from last input column
                      int p = base_p + ((col < width) ? col : (width-1))*comp;
                      float r = dataR[p], g = dataG[p], b = dataB[p];
                      Y[pos]= +0.29900f*r + 0.58700f*g + 0.11400f*b - 128;

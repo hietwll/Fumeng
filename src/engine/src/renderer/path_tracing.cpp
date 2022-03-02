@@ -8,10 +8,21 @@
 
 FM_ENGINE_BEGIN
 
-class PathTracingRenderer : public Renderer
+class PathTracer : public Renderer
 {
+private:
+    int m_depth = 10; // loop times for path tracing render
+    int m_direct = 1; // loop times for direct lighting
+    int m_rr_depth = 10; // when to apply Russian roulette
+    real m_rr_coef = 0.85_r; // russian roulette coefficient
+
 public:
-    PathTracingRenderer(int w_, int h_) : Renderer(w_, h_)
+    explicit PathTracer(const PathTracerConfig& config) :
+    Renderer(config),
+    m_depth(config.depth),
+    m_direct(config.direct_loop),
+    m_rr_depth(config.rr_depth),
+    m_rr_coef(config.rr_coef)
     {
     }
 
@@ -21,7 +32,7 @@ public:
     vec3 MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const;
 };
 
-vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
+vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray) const
 {
     // init parameters
     vec3 color = black;
@@ -29,7 +40,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
     Ray r = ray;
 
     // main loop
-    for(int idx_depth = 1; idx_depth <= depth; idx_depth++)
+    for(int idx_m_depth = 1; idx_m_depth <= m_depth; idx_m_depth++)
     {
         // find closest hit point
         HitPoint hitPoint;
@@ -38,7 +49,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         if(!hitting)
         {
             // return background color
-            if (idx_depth == 1) {
+            if (idx_m_depth == 1) {
                 auto envLight = scene.GetEnvLight();
                 if (envLight != nullptr) {
                     return envLight->GetRadiance({}, {}, {}, -ray.dir);
@@ -49,7 +60,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         }
 
         // if first hit an emissive object
-        if(idx_depth == 1)
+        if(idx_m_depth == 1)
         {
             if(hitPoint.object->IsEmissive())
             {
@@ -65,7 +76,7 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
 
         // direct lighting
         vec3 direct = black;
-        for(int i = 0; i < direct_loop; i++)
+        for(int i = 0; i < m_direct; i++)
         {
             for(auto& light : scene.GetLights()) {
                 direct += beta * MisLight(scene, light, hitPoint);
@@ -73,10 +84,10 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
             direct += beta * MisBSDF(scene, hitPoint);
             direct += beta * MisEnvLight(scene, hitPoint);
         }
-        color += direct / static_cast<real>(direct_loop);
+        color += direct / static_cast<real>(m_direct);
 
         // sample BSDF
-        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
+        auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, m_sampler.Get3D());
         if(glm::length(bsdf_sample.f) < eps_pdf || bsdf_sample.pdf < eps_pdf) {
             break;
         }
@@ -89,12 +100,12 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
         r = hitPoint.GenRay(bsdf_sample.wi_w);
 
         // apply RR strategy
-        if(depth > rr_depth)
+        if(m_depth > m_rr_depth)
         {
-            if (sampler.Get1D() > rr_coef) {
+            if (m_sampler.Get1D() > m_rr_coef) {
                 break;
             }
-            beta /= rr_coef;
+            beta /= m_rr_coef;
         }
     }
 
@@ -104,10 +115,10 @@ vec3 PathTracingRenderer::RenderPixel(Scene& scene, Ray& ray) const
 /*
  * Multiple Importance Sampling for light
  */
-vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint) const
+vec3 PathTracer::MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint) const
 {
     // sample the light
-    auto light_sample = light->Sample(hitPoint, sampler.Get3D());
+    auto light_sample = light->Sample(hitPoint, m_sampler.Get3D());
 
     if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps_pdf) {
         return black;
@@ -140,7 +151,7 @@ vec3 PathTracingRenderer::MisLight(const Scene& scene, const Light* light, const
 /*
  * Multiple Importance Sampling for EnvLight
  */
-vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const
+vec3 PathTracer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const
 {
     auto envLight = scene.GetEnvLight();
     if (envLight == nullptr) {
@@ -148,7 +159,7 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
     }
 
     // sample the light
-    auto light_sample = envLight->Sample(hitPoint, sampler.Get3D());
+    auto light_sample = envLight->Sample(hitPoint, m_sampler.Get3D());
 
     if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps_pdf) {
         return black;
@@ -180,10 +191,10 @@ vec3 PathTracingRenderer::MisEnvLight(const Scene& scene, const HitPoint& hitPoi
 /*
  * Multiple Importance Sampling for BSDF
  */
-vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) const
+vec3 PathTracer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) const
 {
     // sample bsdf
-    auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, sampler.Get3D());
+    auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, m_sampler.Get3D());
     if (glm::length(bsdf_sample.f) < eps_pdf || bsdf_sample.pdf < eps_pdf) {
         return black;
     }
@@ -245,9 +256,9 @@ vec3 PathTracingRenderer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) 
     return f / bsdf_sample.pdf * weight;
 }
 
-SP<Renderer> CreatePathTracingRenderer(int w, int h)
+SP<Renderer> CreatePathTracer(const PathTracerConfig& config)
 {
-    return MakeSP<PathTracingRenderer>(w, h);
+    return MakeSP<PathTracer>(config);
 }
 
 FM_ENGINE_END

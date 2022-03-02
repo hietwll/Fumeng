@@ -12,53 +12,69 @@
 
 FM_ENGINE_BEGIN
 
-class Renderer
-{
-protected:
-    Image image;
+struct RendererConfig {
     int width = 1;
     int height = 1;
-    int spp = 200; // samples per pixel
+    int spp = 10; // samples per pixel
+    int thread_count = 8;
+    std::string output = "result.png";
+};
+
+struct PathTracerConfig : RendererConfig {
     int depth = 10; // loop times for path tracing render
     int direct_loop = 1; // loop times for direct lighting
     int rr_depth = 10; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
-    int thread_num = 8;
-    std::string output_name = "test.png";
-    Sampler sampler;
+};
+
+class Renderer
+{
+protected:
+    Image m_image;
+    Sampler m_sampler;
+    int m_width = 1;
+    int m_height = 1;
+    int m_threadCount = 8;
+    int m_spp = 10;
+    std::string m_output = "result.png";
 
 public:
-    Renderer(int w_, int h_) : width(w_), height(h_)
+    explicit Renderer(const RendererConfig& config) :
+    m_width(config.width),
+    m_height(config.height),
+    m_threadCount(config.thread_count),
+    m_spp(config.spp),
+    m_output(config.output)
     {
-        image.resize(w_, h_);
+        m_image.resize(m_width, m_height);
     }
 
     void DrawFrame(Scene& scene)
     {
-        const real res_x = real(width);
-        const real res_y = real(height);
+        const real res_x = real(m_width);
+        const real res_y = real(m_height);
         const real total_tasks = res_x * res_y;
 
         // create thread pool
-        thread_pool threadPool(thread_num);
+        thread_pool threadPool(m_threadCount);
 
         // submit job
-        for (int i = 0; i < width; i++)
-            for (int j = 0; j < height; j++)
+        for (int i = 0; i < m_width; i++)
+            for (int j = 0; j < m_height; j++)
             {
                 threadPool.push_task([i, j, &scene, &res_x, &res_y, this]{
-                    int j_flip = height - 1 - j;
-                    image(i, j_flip) = black;
-                    for(int k = 0; k < spp; k++) {
-                        const vec2 film_sample = sampler.Get2D();
+                    int j_flip = m_height - 1 - j;
+                    m_image(i, j_flip) = black;
+                    for(int k = 0; k < m_spp; k++) {
+                        const vec2 film_sample = m_sampler.Get2D();
                         const real px = (i + film_sample.x) / res_x;
                         const real py = (j + film_sample.y) / res_y;
                         Ray camera_ray = scene.GetCamera()->SampleRay({px, py});
-                        image(i, j_flip) += RenderPixel(scene, camera_ray);
+                        m_image(i, j_flip) += RenderPixel(scene, camera_ray);
                     }
-                    image(i, j_flip) /= spp;
+                    m_image(i, j_flip) /= m_spp;
 
-                    Filmic(image(i ,j_flip), 1.0_r);
+                    Filmic(m_image(i , j_flip), 1.0_r);
                 });
             }
 
@@ -77,7 +93,7 @@ public:
             if (new_percent - percent > 0.1_r || finished) {
                 threadPool.paused = true;
                 threadPool.wait_for_tasks();
-                image.save_to_file(output_name, false);
+                m_image.save_to_file(m_output, false);
                 threadPool.paused = false;
                 percent = new_percent;
             }

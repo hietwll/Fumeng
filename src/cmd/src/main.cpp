@@ -173,7 +173,7 @@
 //{
 //    // camera
 //    real aspect_ratio = 1024_r / 512.0_r;
-//    int width = 4096;
+//    int m_width = 4096;
 //    SP<const Camera> camera = CreatePinPoleCamera(vec3 (-8.0_r, 0.0_r, 0.0_r),
 //                                                  vec3(1.0_r, 0.0_r, 0.0_r),
 //                                            vec3(0.0, 0.0, 1.0_r),
@@ -222,7 +222,7 @@
 //
 //    scene->SetEnvLight(envLight);
 //
-//    SP<Renderer> renderer = CreatePathTracingRenderer(width, int(real(width) / aspect_ratio));
+//    SP<Renderer> renderer = CreatePathTracingRenderer(m_width, int(real(m_width) / aspect_ratio));
 //    renderer.get()->DrawFrame(*scene.get());
 //
 //    return 0;

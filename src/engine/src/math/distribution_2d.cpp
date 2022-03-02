@@ -27,10 +27,10 @@ Distribution2D::Distribution2D(vector2d& value, size_t width, size_t height)
 
 Sample2DInfo Distribution2D::Sample(const vec3 &sample) const
 {
-    // sample height (v)
+    // sample m_height (v)
     const auto res_marginal = marginal->Sample(sample.x);
 
-    // sample width (u)
+    // sample m_width (u)
     const auto res_conditional = conditional[res_marginal.idx]->Sample(sample.y);
 
     // joint pdf w.r.t. uv

@@ -26,7 +26,7 @@ private:
     {
         T ret = default_value;
         if (j.find(field) == j.end()) {
-            spdlog::warn("Value for key {} is not specified, use default: {}.", field, default_value);
+            spdlog::warn("Value for key {} is not specified, use default: {}", field, default_value);
             return ret;
         }
         ret = j.at(field).get<T>();
@@ -36,7 +36,7 @@ private:
     vec3 GetVec3(const nlohmann::json &j, const std::string& field, const vec3& default_value) const
     {
         if (j.find(field) == j.end()) {
-            spdlog::warn("Value for key {} is not specified, use default: {},{}, {}.", field,
+            spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", field,
                          default_value.x, default_value.y, default_value.z);
             return default_value;
         }
@@ -84,13 +84,34 @@ public:
                         GetDeFault(c->get(), "focal_distance", 1.0_r),
                         GetDeFault(c->get(), "fov", 60.0_r),
                         GetDeFault(c->get(), "aspect", 1.0_r));
+                return;
             }
         }
+
+        throw std::runtime_error("Camera is not specified.");
     }
 
     void CreateRender()
     {
+        auto c = GetOptional(scene_config, "renderer");
+        if (c) {
+            std::string default_type = "path_tracer";
+            std::string render_type = GetDeFault(c->get(), "type", default_type);
+            if (render_type == "path_tracer") {
+                PathTracerConfig config;
 
+                m_camera = CreatePinPoleCamera(
+                        GetVec3(c->get(), "pos", black),
+                        GetVec3(c->get(), "look_at", red),
+                        GetVec3(c->get(), "up", blue),
+                        GetDeFault(c->get(), "focal_distance", 1.0_r),
+                        GetDeFault(c->get(), "fov", 60.0_r),
+                        GetDeFault(c->get(), "aspect", 1.0_r));
+                return;
+            }
+        }
+
+        throw std::runtime_error("Camera is not specified.");
     }
 
     void CreateScene()
