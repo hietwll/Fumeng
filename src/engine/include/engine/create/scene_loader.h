@@ -10,7 +10,6 @@
 #include <engine/create/scene.h>
 #include <engine/create/texture.h>
 #include <engine/create/light.h>
-#include <nlohmann/json.hpp>
 #include <fstream>
 #include <optional>
 
@@ -20,37 +19,7 @@ class SceneLoader {
 private:
     nlohmann::json scene_config;
     SP<Camera> m_camera;
-
-    template <class T>
-    inline T GetDeFault(const nlohmann::json &j, const std::string& field, const T& default_value) const
-    {
-        T ret = default_value;
-        if (j.find(field) == j.end()) {
-            spdlog::warn("Value for key {} is not specified, use default: {}", field, default_value);
-            return ret;
-        }
-        ret = j.at(field).get<T>();
-        return ret;
-    }
-
-    vec3 GetVec3(const nlohmann::json &j, const std::string& field, const vec3& default_value) const
-    {
-        if (j.find(field) == j.end()) {
-            spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", field,
-                         default_value.x, default_value.y, default_value.z);
-            return default_value;
-        }
-
-        auto number = j.at(field).get<std::vector<real>>();
-
-        if (number.size() == 0) {
-            return default_value;
-        } else if (number.size() < 3) {
-            return vec3{number[0]};
-        } else {
-            return vec3{number[0], number[1], number[2]};
-        }
-    }
+    SP<Renderer> m_render;
 
     std::optional<std::reference_wrapper<const nlohmann::json>> GetOptional(const nlohmann::json &j, const std::string& field) const
     {
@@ -68,22 +37,24 @@ public:
         std::ifstream ifs(path);
         scene_config = nlohmann::json::parse(ifs);
         CreateCamera();
+        CreateRender();
     }
 
     void CreateCamera()
     {
         auto c = GetOptional(scene_config, "camera");
         if (c) {
-            std::string default_type = "pin_hole";
-            std::string camera_type = GetDeFault(c->get(), "type", default_type);
+            std::string camera_type = "pin_hole";
+            json::LoadValue(c->get(), "type", camera_type);
+
             if (camera_type == "pin_hole") {
-                m_camera = CreatePinPoleCamera(
-                        GetVec3(c->get(), "pos", black),
-                        GetVec3(c->get(), "look_at", red),
-                        GetVec3(c->get(), "up", blue),
-                        GetDeFault(c->get(), "focal_distance", 1.0_r),
-                        GetDeFault(c->get(), "fov", 60.0_r),
-                        GetDeFault(c->get(), "aspect", 1.0_r));
+//                m_camera = CreatePinPoleCamera(
+//                        GetVec3(c->get(), "pos", black),
+//                        GetVec3(c->get(), "look_at", red),
+//                        GetVec3(c->get(), "up", blue),
+//                        GetDeFault(c->get(), "focal_distance", 1.0_r),
+//                        GetDeFault(c->get(), "fov", 60.0_r),
+//                        GetDeFault(c->get(), "aspect", 1.0_r));
                 return;
             }
         }
@@ -95,18 +66,11 @@ public:
     {
         auto c = GetOptional(scene_config, "renderer");
         if (c) {
-            std::string default_type = "path_tracer";
-            std::string render_type = GetDeFault(c->get(), "type", default_type);
+            std::string render_type = "path_tracer";
+            json::LoadValue(c->get(), "type", render_type);
             if (render_type == "path_tracer") {
                 PathTracerConfig config;
-
-                m_camera = CreatePinPoleCamera(
-                        GetVec3(c->get(), "pos", black),
-                        GetVec3(c->get(), "look_at", red),
-                        GetVec3(c->get(), "up", blue),
-                        GetDeFault(c->get(), "focal_distance", 1.0_r),
-                        GetDeFault(c->get(), "fov", 60.0_r),
-                        GetDeFault(c->get(), "aspect", 1.0_r));
+                config.Load(c->get());
                 return;
             }
         }

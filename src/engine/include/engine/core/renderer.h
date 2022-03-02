@@ -9,22 +9,44 @@
 #include <engine/core/ray.h>
 #include <engine/core/utils.h>
 #include <thread_pool.hpp>
+#include <engine/core/config.h>
 
 FM_ENGINE_BEGIN
 
-struct RendererConfig {
+class RendererConfig : public Config {
+public:
     int width = 1;
     int height = 1;
     int spp = 10; // samples per pixel
     int thread_count = 8;
     std::string output = "result.png";
+
+    void Load(const nlohmann::json &j) override
+    {
+        Config::Load(j);
+        FM_LOAD_IMPL(j, width);
+        FM_LOAD_IMPL(j, height);
+        FM_LOAD_IMPL(j, spp);
+        FM_LOAD_IMPL(j, thread_count);
+        FM_LOAD_IMPL(j, output);
+    }
 };
 
-struct PathTracerConfig : RendererConfig {
+class PathTracerConfig : public RendererConfig {
+public:
     int depth = 10; // loop times for path tracing render
     int direct_loop = 1; // loop times for direct lighting
     int rr_depth = 10; // when to apply Russian roulette
     real rr_coef = 0.85_r; // russian roulette coefficient
+
+    void Load(const nlohmann::json &j) override
+    {
+        RendererConfig::Load(j);
+        FM_LOAD_IMPL(j, depth);
+        FM_LOAD_IMPL(j, direct_loop);
+        FM_LOAD_IMPL(j, rr_depth);
+        FM_LOAD_IMPL(j, rr_coef);
+    }
 };
 
 class Renderer
