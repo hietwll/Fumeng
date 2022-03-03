@@ -10,7 +10,7 @@ FM_ENGINE_BEGIN
 
 namespace json {
     template <class T>
-    void LoadValue(const nlohmann::json &j, const std::string& name, T& value) {
+    static void LoadValue(const nlohmann::json &j, const std::string& name, T& value) {
         if (j.find(name) == j.end()) {
             if constexpr (std::is_same<T, vec3>::value) {
                 WarningVec3(name, static_cast<vec3>(value));
@@ -28,12 +28,12 @@ namespace json {
     }
 
     template <class T>
-    void ParseDefault(const nlohmann::json &j, const std::string& name, T& value)
+    static void ParseDefault(const nlohmann::json &j, const std::string& name, T& value)
     {
         value = j.at(name).get<T>();
     }
 
-    void ParseVec3(const nlohmann::json &j, const std::string& name, vec3& value)
+    static void ParseVec3(const nlohmann::json &j, const std::string& name, vec3& value)
     {
         auto number = j.at(name).get<std::vector<real>>();
 
@@ -51,12 +51,12 @@ namespace json {
     }
 
     template <class T>
-    void WarningDefault(const std::string& name, const T& value)
+    static void WarningDefault(const std::string& name, const T& value)
     {
         spdlog::warn("Value for key {} is not specified, use default: {}", name, value);
     }
 
-    void WarningVec3(const std::string& name, const vec3& value)
+    static void WarningVec3(const std::string& name, const vec3& value)
     {
         spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", name,
                      value.x, value.y, value.z);

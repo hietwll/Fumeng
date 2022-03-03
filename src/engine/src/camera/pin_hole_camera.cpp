@@ -9,29 +9,32 @@ FM_ENGINE_BEGIN
 class PinHoleCamera : public Camera
 {
 private:
-    vec3 pos_; // world space
-    vec3 look_at_; // world space
-    vec3 up_; // world space
-    real fov_; // Degree
-    real aspect_ = 1.0_r;
-    real focal_distance_;
-    real film_width_ = 1.0_r;
-    real film_height_ = 1.0_r;
-    Transform camera_to_world;
+    vec3 m_pos; // world space
+    vec3 m_look_at; // world space
+    vec3 m_up; // world space
+    real m_fov; // Degree
+    real m_aspect = 1.0_r;
+    real m_focal_distance;
+    real m_film_width = 1.0_r;
+    real m_film_height = 1.0_r;
+    Transform m_camera_to_world;
 public:
-    PinHoleCamera(const vec3& pos, const vec3& look_at, const vec3& up, real focal_distance, real fov = 60.0_r, real aspect = 1.0_r);
+    PinHoleCamera(const PinHoleCameraConfig& config);
     Ray SampleRay(const vec2& ndc_pos) const override;
     Transform LookAt(vec3 eye, vec3 dst, vec3 up);
 };
 
-PinHoleCamera::PinHoleCamera(const vec3 &pos, const vec3 &look_at, const vec3 &up, real focal_distance, real fov,
-                             real aspect)
-                             : pos_(pos), look_at_(look_at), up_(glm::normalize(up)),
-                             focal_distance_(focal_distance), fov_(fov), aspect_(aspect)
+PinHoleCamera::PinHoleCamera(const PinHoleCameraConfig& config) :
+m_pos(config.pos),
+m_look_at(config.look_at),
+m_up(glm::normalize(config.up)),
+m_focal_distance(config.focal_distance),
+m_fov(config.fov),
+m_aspect(config.aspect)
 {
-    camera_to_world = Transform(glm::lookAt(pos_, look_at_, up_)).InvTransform(); //LookAt(pos_, look_at_, up_);
-    film_height_ = 2.0_r * focal_distance_ * std::tan(DegToRad(fov_) / 2.0_r);
-    film_width_ = aspect_ * film_height_;
+    m_camera_to_world = Transform(glm::lookAt(m_pos, m_look_at, m_up)).InvTransform(); //LookAt(m_pos, m_look_at, m_up);
+    m_film_height = 2.0_r * m_focal_distance * std::tan(DegToRad(m_fov) / 2.0_r);
+    m_film_width = m_aspect * m_film_height;
 }
 
 Transform PinHoleCamera::LookAt(vec3 eye, vec3 dst, vec3 up)
@@ -68,15 +71,15 @@ Transform PinHoleCamera::LookAt(vec3 eye, vec3 dst, vec3 up)
  */
 Ray PinHoleCamera::SampleRay(const vec2 &ndc_pos) const
 {
-    const vec3 film_pos_loc = vec3((ndc_pos.x - 0.5_r) * film_width_, (ndc_pos.y - 0.5_r) * film_height_, focal_distance_);
-    const vec3 film_pos = camera_to_world.ApplyToPoint(film_pos_loc);
-    Ray ray(pos_, glm::normalize(film_pos - pos_));
+    const vec3 film_pos_loc = vec3((ndc_pos.x - 0.5_r) * m_film_width, (ndc_pos.y - 0.5_r) * m_film_height, m_focal_distance);
+    const vec3 film_pos = m_camera_to_world.ApplyToPoint(film_pos_loc);
+    Ray ray(m_pos, glm::normalize(film_pos - m_pos));
     return ray;
 }
 
-SP<Camera> CreatePinPoleCamera(const vec3& pos, const vec3& look_at, const vec3& up, real focal_distance, real fov = 60.0_r, real aspect = 1.0_r)
+SP<Camera> CreatePinPoleCamera(const PinHoleCameraConfig& config)
 {
-    return MakeSP<PinHoleCamera>(pos, look_at, up, focal_distance, fov, aspect);
+    return MakeSP<PinHoleCamera>(config);
 }
 
 FM_ENGINE_END

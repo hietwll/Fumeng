@@ -5,7 +5,7 @@
 
 FM_ENGINE_BEGIN
 
-SP<Camera> CreatePinPoleCamera(const vec3& pos, const vec3& look_at, const vec3& up, real focal_distance, real fov = 60.0_r, real aspect = 1.0_r);
+SP<Camera> CreatePinPoleCamera(const PinHoleCameraConfig& config);
 
 FM_ENGINE_END
 

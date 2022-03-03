@@ -48,13 +48,9 @@ public:
             json::LoadValue(c->get(), "type", camera_type);
 
             if (camera_type == "pin_hole") {
-//                m_camera = CreatePinPoleCamera(
-//                        GetVec3(c->get(), "pos", black),
-//                        GetVec3(c->get(), "look_at", red),
-//                        GetVec3(c->get(), "up", blue),
-//                        GetDeFault(c->get(), "focal_distance", 1.0_r),
-//                        GetDeFault(c->get(), "fov", 60.0_r),
-//                        GetDeFault(c->get(), "aspect", 1.0_r));
+                PinHoleCameraConfig config;
+                config.Load(c->get());
+                m_camera = CreatePinPoleCamera(config);
                 return;
             }
         }
