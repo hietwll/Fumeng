@@ -1,20 +1,21 @@
 #include <engine/core/texture.h>
-#include <engine/core/image.h>
 
 FM_ENGINE_BEGIN
 
 class ConstantTexture : public Texture
 {
 private:
-    vec3 value;
+    vec3 m_value;
 
     vec3 SampleImpl(const vec2& uv) const override
     {
-        return value;
+        return m_value;
     }
 
 public:
-    ConstantTexture(const vec3& value_): Texture(), value(value_)
+    ConstantTexture(const ConstantTextureConfig& config) :
+    Texture(config),
+    m_value(config.value)
     {
     }
 
@@ -29,14 +30,9 @@ public:
     }
 };
 
-SP<Texture> CreateConstantTexture(const vec3& value)
+SP<Texture> CreateConstantTexture(const ConstantTextureConfig& config)
 {
-    return MakeSP<ConstantTexture>(value);
-}
-
-SP<Texture> CreateConstantTexture(real value)
-{
-    return MakeSP<ConstantTexture>(vec3(value));
+    return MakeSP<ConstantTexture>(config);
 }
 
 FM_ENGINE_END

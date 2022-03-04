@@ -77,6 +77,66 @@ public:
     void CreateScene()
     {
 
+        auto c = GetOptional(scene_config, "scene");
+        if (c) {
+            // create render objects
+            auto obj_configs = GetOptional(c->get(), "render_objects");
+            std::vector<SP<const RenderObject>> render_objects;
+            if (obj_configs) {
+                for(auto& config : obj_configs->get()) {
+                    CreateRenderObjects(config, render_objects);
+                }
+            }
+
+            // create accelerator
+
+
+            // create env
+        }
+
+        throw std::runtime_error("Scene is not specified.");
+    }
+
+    void CreateRenderObjects(const nlohmann::json &j, std::vector<SP<const RenderObject>>& objs)
+    {
+        // create shape
+        std::vector<SP<const Geometry>> geometries;
+        auto shape_config = GetOptional(j, "shape");
+        if (shape_config) {
+            std::string shape_type;
+            json::LoadValue(shape_config->get(), "type", shape_type);
+            if (shape_type == "triangle_mesh") {
+                std::string path;
+                json::LoadValue(shape_config->get(), "path", path);
+                CreateTriangleMesh(path, geometries);
+            } else if (shape_type == "sphere") {
+                // todo: fill spere loading
+            } else {
+                spdlog::error("Shape type not supported: {}.", shape_type);
+                throw std::runtime_error("Shape type not supported.");
+            }
+        }
+
+        // create material
+        auto material_config = GetOptional(j, "material");
+        SP<const Material> material;
+        if (material_config) {
+            std::string material_type;
+            json::LoadValue(shape_config->get(), "type", material_type);
+            if (material_type == "lambert_diffuse") {
+                LambertDiffuseConfig config;
+                config.Load(j);
+                material = CreateLambertDiffuse(config);
+            } else if (material_type == "disney") {
+                DisneyConfig config;
+                config.Load(j);
+                material = CreateDisneyMaterial(config);
+            } else {
+                spdlog::error("Shape type not supported: {}.", material_type);
+                throw std::runtime_error("Shape type not supported.");
+            }
+        }
+
     }
 };
 

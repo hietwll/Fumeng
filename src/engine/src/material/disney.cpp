@@ -1,6 +1,7 @@
 ﻿#include <engine/core/texture.h>
 #include <engine/core/utils.h>
 #include <engine/core/fresnel.h>
+#include <engine/create/texture.h>
 #include "disney.h"
 #include "material_common.h"
 
@@ -616,40 +617,24 @@ private:
     bool m_thin;
 
 public:
-    DisneyMaterial(
-        SP<Texture> basecolor,
-        SP<Texture> metallic,
-        SP<Texture> specular,
-        SP<Texture> specularTint,
-        SP<Texture> roughness,
-        SP<Texture> anisotropic,
-        SP<Texture> sheen,
-        SP<Texture> sheenTint,
-        SP<Texture> clearcoat,
-        SP<Texture> clearcoatGloss,
-        SP<Texture> specTrans,
-        SP<Texture> specTransRoughness,
-        SP<Texture> diffTrans,
-        SP<Texture> flatness,
-        SP<Texture> ior,
-        const bool thin)
+    DisneyMaterial(const DisneyConfig& config)
     {
-        m_basecolor = basecolor;
-        m_metallic = metallic;
-        m_specular = specular;
-        m_specularTint = specularTint;
-        m_roughness = roughness;
-        m_anisotropic = anisotropic;
-        m_sheen = sheen;
-        m_sheenTint = sheenTint;
-        m_clearcoat = clearcoat;
-        m_clearcoatGloss = clearcoatGloss;
-        m_specTrans = specTrans;
-        m_specTransRoughness = specTransRoughness;
-        m_diffTrans = diffTrans;
-        m_flatness = flatness;
-        m_ior = ior;
-        m_thin = thin;
+        m_basecolor = CreateTexture(config.basecolor);
+        m_metallic = CreateTexture(config.metallic);
+        m_specular = CreateTexture(config.specular);
+        m_specularTint = CreateTexture(config.specularTint);
+        m_roughness = CreateTexture(config.roughness);
+        m_anisotropic = CreateTexture(config.anisotropic);
+        m_sheen = CreateTexture(config.sheen);
+        m_sheenTint = CreateTexture(config.sheenTint);
+        m_clearcoat = CreateTexture(config.clearcoat);
+        m_clearcoatGloss = CreateTexture(config.clearcoatGloss);
+        m_specTrans = CreateTexture(config.specTrans);
+        m_specTransRoughness = CreateTexture(config.specTransRoughness);
+        m_diffTrans = CreateTexture(config.diffTrans);
+        m_flatness = CreateTexture(config.flatness);
+        m_ior = CreateTexture(config.ior);
+        m_thin = config.thin;
     }
 
     void CreateBSDF(HitPoint &hit_point) const override
@@ -690,41 +675,9 @@ public:
     };
 };
 
-SP<Material> CreateDisneyMaterial(
-        SP<Texture> basecolor,
-        SP<Texture> metallic,
-        SP<Texture> specular,
-        SP<Texture> specularTint,
-        SP<Texture> roughness,
-        SP<Texture> anisotropic,
-        SP<Texture> sheen,
-        SP<Texture> sheenTint,
-        SP<Texture> clearcoat,
-        SP<Texture> clearcoatGloss,
-        SP<Texture> specTrans,
-        SP<Texture> specTransRoughness,
-        SP<Texture> diffTrans,
-        SP<Texture> flatness,
-        SP<Texture> ior,
-        const bool thin)
+SP<Material> CreateDisneyMaterial(const DisneyConfig& config)
 {
-    return MakeSP<DisneyMaterial>(
-            basecolor,
-            metallic,
-            specular,
-            specularTint,
-            roughness,
-            anisotropic,
-            sheen,
-            sheenTint,
-            clearcoat,
-            clearcoatGloss,
-            specTrans,
-            specTransRoughness,
-            diffTrans,
-            flatness,
-            ior,
-            thin);
+    return MakeSP<DisneyMaterial>(config);
 }
 
 FM_ENGINE_END

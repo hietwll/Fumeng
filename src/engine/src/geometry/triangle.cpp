@@ -255,18 +255,16 @@ BBox Triangle::WorldBound() const
     return box;
 }
 
-std::vector<SP<const Geometry>> CreateTriangleMesh(const std::string& filename)
+void CreateTriangleMesh(const std::string& filename, std::vector<SP<const Geometry>>& geometries)
 {
     auto mesh = MakeSP<TriangleMesh>(filename);
-
-    std::vector<SP<const Geometry>> triangles;
 
     // Loop over shapes
     for (size_t s = 0; s < mesh->shapes.size(); s++) {
         // Loop over faces(polygon)
         size_t index_offset = 0;
         for (size_t f = 0; f < mesh->shapes[s].mesh.num_face_vertices.size(); f++) {
-            triangles.push_back(MakeSP<Triangle>(mesh,
+            geometries.push_back(MakeSP<Triangle>(mesh,
                                            mesh->shapes[s].mesh.indices[index_offset + 0],
                                            mesh->shapes[s].mesh.indices[index_offset + 1],
                                            mesh->shapes[s].mesh.indices[index_offset + 2]));
@@ -274,8 +272,6 @@ std::vector<SP<const Geometry>> CreateTriangleMesh(const std::string& filename)
             index_offset += fv;
         }
     }
-
-    return triangles;
 }
 
 FM_ENGINE_END

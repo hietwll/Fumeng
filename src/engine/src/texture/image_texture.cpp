@@ -7,8 +7,8 @@ class ImageTexture : public Texture
 {
 private:
     using SampleFunc = vec3(*)(const vec2& uv, const Image& img);
-    Image image;
-    SampleFunc sampler = &NearestSample;
+    Image m_image;
+    SampleFunc m_sampler = &NearestSample;
 
     static vec3 LinearSample(const vec2& uv, const Image& img)
     {
@@ -41,25 +41,7 @@ private:
         return img(u, v);
     }
 
-    vec3 SampleImpl(const vec2& uv) const override
-    {
-        return sampler(uv, image);
-    }
-
-public:
-    ImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
-                 std::string& sample_name)
-    : Texture(wrap_u_, wrap_v_)
-    {
-        bool isHDR = false;
-        if (img_path_.find(".hdr") != std::string::npos) {
-            isHDR = true;
-        }
-        image.load_from_file(img_path_, isHDR);
-        InitSampler(sample_name, sampler);
-    }
-
-    static void InitSampler(std::string& sample_name, SampleFunc & sample_func)
+    static void InitSampler(const std::string& sample_name, SampleFunc & sample_func)
     {
         if (sample_name == "nearest") {
             sample_func = &NearestSample;
@@ -70,22 +52,37 @@ public:
         }
     }
 
+    vec3 SampleImpl(const vec2& uv) const override
+    {
+        return m_sampler(uv, m_image);
+    }
+
+public:
+    ImageTexture(const ImageTextureConfig& config) : Texture(config)
+    {
+        bool isHDR = false;
+        if (config.path.find(".hdr") != std::string::npos) {
+            isHDR = true;
+        }
+        m_image.load_from_file(config.path, isHDR);
+        InitSampler(config.sampler, m_sampler);
+    }
+
     size_t width() const override
     {
-        return image.width();
+        return m_image.width();
     }
 
     size_t height() const override
     {
-        return image.height();
+        return m_image.height();
     }
 
 };
 
-SP<Texture> CreateImageTexture(std::string& img_path_, std::string& wrap_u_, std::string& wrap_v_,
-                               std::string& sample_name)
+SP<Texture> CreateImageTexture(const ImageTextureConfig& config)
 {
-    return MakeSP<ImageTexture>(img_path_, wrap_u_, wrap_v_, sample_name);
+    return MakeSP<ImageTexture>(config);
 }
 
 FM_ENGINE_END
