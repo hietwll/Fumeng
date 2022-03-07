@@ -17,9 +17,10 @@ FM_ENGINE_BEGIN
 
 class SceneLoader {
 private:
-    nlohmann::json scene_config;
-    SP<Camera> m_camera;
+    nlohmann::json m_config;
+    SP<const Camera> m_camera;
     SP<Renderer> m_render;
+    SP<Scene> m_scene;
 
     std::optional<std::reference_wrapper<const nlohmann::json>> GetOptional(const nlohmann::json &j, const std::string& field) const
     {
@@ -29,20 +30,9 @@ private:
         return std::nullopt;
     }
 
-public:
-    SceneLoader() {};
-
-    void Load(const std::string& path)
+    void ParseCamera()
     {
-        std::ifstream ifs(path);
-        scene_config = nlohmann::json::parse(ifs);
-        CreateCamera();
-        CreateRender();
-    }
-
-    void CreateCamera()
-    {
-        auto c = GetOptional(scene_config, "camera");
+        auto c = GetOptional(m_config, "camera");
         if (c) {
             std::string camera_type = "pin_hole";
             json::LoadValue(c->get(), "type", camera_type);
@@ -58,15 +48,16 @@ public:
         throw std::runtime_error("Camera is not specified.");
     }
 
-    void CreateRender()
+    void ParseRender()
     {
-        auto c = GetOptional(scene_config, "renderer");
+        auto c = GetOptional(m_config, "renderer");
         if (c) {
             std::string render_type = "path_tracer";
             json::LoadValue(c->get(), "type", render_type);
             if (render_type == "path_tracer") {
                 PathTracerConfig config;
                 config.Load(c->get());
+                m_render = CreatePathTracer(config);
                 return;
             }
         }
@@ -74,30 +65,53 @@ public:
         throw std::runtime_error("Camera is not specified.");
     }
 
-    void CreateScene()
+    void ParseScene()
     {
-
-        auto c = GetOptional(scene_config, "scene");
+        auto c = GetOptional(m_config, "scene");
         if (c) {
             // create render objects
             auto obj_configs = GetOptional(c->get(), "render_objects");
             std::vector<SP<const RenderObject>> render_objects;
             if (obj_configs) {
                 for(auto& config : obj_configs->get()) {
-                    CreateRenderObjects(config, render_objects);
+                    ParseRenderObjects(config, render_objects);
                 }
             }
 
-            // create accelerator
+            // create aggregate
+            SP<const Aggregate> aggregate;
+            std::string accelerator_type = "bvh";
+            auto bvh_config = GetOptional(c->get(), "bvh");
+            if (bvh_config) {
+                json::LoadValue(bvh_config->get(), "type", accelerator_type);
+            }
 
+            if (accelerator_type == "simple") {
+                aggregate = CreateSimpleAggregate(render_objects);
+            } else {
+                aggregate = CreateBVHAggregate(render_objects);
+            }
+
+            // create scene
+            m_scene = CreateSimpleScene(m_camera, aggregate);
 
             // create env
+            std::string env_path;
+            json::LoadValue(c->get(), "env", accelerator_type);
+            if (!env_path.empty()) {
+                TextureDesc desc;
+                desc.type = TextureDesc::TextureType::IMAGE;
+                desc.config = MakeUP<ImageTextureConfig>(env_path);
+                SP<Texture> sky = CreateTexture(desc);
+                SP<EnvLight> env_light = CreateEnvLight(sky);
+                m_scene->SetEnvLight(env_light);
+            }
+        } else  {
+            throw std::runtime_error("Scene is not specified.");
         }
-
-        throw std::runtime_error("Scene is not specified.");
     }
 
-    void CreateRenderObjects(const nlohmann::json &j, std::vector<SP<const RenderObject>>& objs)
+    void ParseRenderObjects(const nlohmann::json &j, std::vector<SP<const RenderObject>>& objs)
     {
         // create shape
         std::vector<SP<const Geometry>> geometries;
@@ -110,7 +124,7 @@ public:
                 json::LoadValue(shape_config->get(), "path", path);
                 CreateTriangleMesh(path, geometries);
             } else if (shape_type == "sphere") {
-                // todo: fill spere loading
+                // todo: fill sphere loading
             } else {
                 spdlog::error("Shape type not supported: {}.", shape_type);
                 throw std::runtime_error("Shape type not supported.");
@@ -122,7 +136,7 @@ public:
         SP<const Material> material;
         if (material_config) {
             std::string material_type;
-            json::LoadValue(shape_config->get(), "type", material_type);
+            json::LoadValue(material_config->get(), "type", material_type);
             if (material_type == "lambert_diffuse") {
                 LambertDiffuseConfig config;
                 config.Load(j);
@@ -137,6 +151,28 @@ public:
             }
         }
 
+        // create render objects
+        for (auto& geom : geometries) {
+            // todo: add emissive parameter in json
+            objs.push_back(CreateRenderObject(geom, material, black));
+        }
+    }
+
+public:
+    SceneLoader() {};
+
+    void Load(const std::string& path)
+    {
+        std::ifstream ifs(path);
+        m_config = nlohmann::json::parse(ifs);
+        ParseCamera();
+        ParseRender();
+        ParseScene();
+    }
+
+    void DrawFrame() const
+    {
+        m_render.get()->DrawFrame(*m_scene.get());
     }
 };
 

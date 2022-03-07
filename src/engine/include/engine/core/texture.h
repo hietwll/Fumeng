@@ -36,6 +36,13 @@ public:
     std::string path;
     std::string sampler = "linear";
 
+    ImageTextureConfig() = default;
+
+    ImageTextureConfig(const std::string& image_path) :
+    path(image_path)
+    {
+    }
+
     void Load(const nlohmann::json &j) override
     {
         TextureConfig::Load(j);

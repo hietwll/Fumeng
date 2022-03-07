@@ -9,11 +9,11 @@ SP<Texture> CreateConstantTexture(const ConstantTextureConfig& config);
 SP<Texture> CreateTexture(const TextureDesc& desc)
 {
     if (desc.type == TextureDesc::TextureType::CONSTANT) {
-        return CreateConstantTexture(desc.config);
+        return CreateConstantTexture(*dynamic_cast<ConstantTextureConfig*>(desc.config.get()));
     } else if (desc.type == TextureDesc::TextureType::IMAGE) {
-        return CreateImageTexture(desc.config);
+        return CreateImageTexture(*dynamic_cast<ImageTextureConfig*>(desc.config.get()));
     } else {
-        throw throw std::runtime_error("Texture type not supported.");
+        throw std::runtime_error("Texture type not supported.");
     }
 }
 
