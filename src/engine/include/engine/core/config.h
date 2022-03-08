@@ -54,23 +54,30 @@ namespace json {
     template <class T>
     static void ParseDefault(const nlohmann::json &j, const std::string& name, T& value)
     {
-        value = j.at(name).get<T>();
+        try {
+            value = j.at(name).get<T>();
+        } catch (...) {
+            spdlog::error("Failed when parsing {}.", name);
+        }
     }
 
     static void ParseVec3(const nlohmann::json &j, const std::string& name, vec3& value)
     {
-        auto number = j.at(name).get<std::vector<real>>();
-
-        if (number.size() == 0) {
-            return;
-        } else if (number.size() < 3) {
-            value.x = value.y = value.z = number[0];
-            return;
-        } else {
-            value.x = number[0];
-            value.y = number[1];
-            value.z = number[2];
-            return;
+        try {
+            auto number = j.at(name).get<std::vector<real>>();
+            if (number.size() == 0) {
+                return;
+            } else if (number.size() < 3) {
+                value.x = value.y = value.z = number[0];
+                return;
+            } else {
+                value.x = number[0];
+                value.y = number[1];
+                value.z = number[2];
+                return;
+            }
+        } catch (...) {
+            spdlog::error("Failed when parsing {}.", name);
         }
     }
 

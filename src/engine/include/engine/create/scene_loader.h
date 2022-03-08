@@ -97,7 +97,7 @@ private:
 
             // create env
             std::string env_path;
-            json::LoadValue(c->get(), "env", accelerator_type);
+            json::LoadValue(c->get(), "env", env_path);
             if (!env_path.empty()) {
                 TextureDesc desc;
                 desc.type = TextureDesc::TextureType::IMAGE;
@@ -139,7 +139,7 @@ private:
             json::LoadValue(material_config->get(), "type", material_type);
             if (material_type == "lambert_diffuse") {
                 LambertDiffuseConfig config;
-                config.Load(j);
+                config.Load(material_config->get());
                 material = CreateLambertDiffuse(config);
             } else if (material_type == "disney") {
                 DisneyConfig config;
