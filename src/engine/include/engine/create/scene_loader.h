@@ -143,7 +143,7 @@ private:
                 material = CreateLambertDiffuse(config);
             } else if (material_type == "disney") {
                 DisneyConfig config;
-                config.Load(j);
+                config.Load(material_config->get());
                 material = CreateDisneyMaterial(config);
             } else {
                 spdlog::error("Shape type not supported: {}.", material_type);

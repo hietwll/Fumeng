@@ -101,7 +101,7 @@ namespace json {
     static void WarningTextureDesc(const std::string& name, TextureDesc& value)
     {
         value.CreateDefault();
-        spdlog::warn("Value for {} is not specified, use default: (0, 0, 0)");
+        spdlog::warn("Value for {} is not specified, use default: (0, 0, 0)", name);
     }
 }
 
