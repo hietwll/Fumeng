@@ -33,7 +33,7 @@ public:
     TextureDesc specTransRoughness;
     TextureDesc diffTrans;
     TextureDesc flatness;
-    TextureDesc ior;
+    TextureDesc ior {1.5};
     bool thin = false;
 
     void Load(const nlohmann::json &j) override

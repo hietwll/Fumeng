@@ -24,6 +24,12 @@ class ConstantTextureConfig : public TextureConfig {
 public:
     vec3 value = black;
 
+    ConstantTextureConfig() = default;
+
+    explicit ConstantTextureConfig(real val) : value(vec3(val, val, val)) {};
+
+    explicit ConstantTextureConfig(const vec3& val) : value(val) {};
+
     void Load(const nlohmann::json &j) override
     {
         TextureConfig::Load(j);

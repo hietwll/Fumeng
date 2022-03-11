@@ -533,6 +533,7 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
             vec3 f = CalFuncLocal(wo_inv, wi_inv);
             return {f, ShadingToWorld(wi), pdf, false};
         } else {
+            // todo: might enter here when there's no thrasmission
             wi = m_disney_specular_transmission->Sample(wo, samples);
             return SampleInfoFromWoWi(wo, wi);
         }

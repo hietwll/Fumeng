@@ -22,9 +22,22 @@ void TextureDesc::Load(const nlohmann::json &j)
     config->Load(j);
 }
 
-void TextureDesc::CreateDefault()
+TextureDesc::TextureDesc() :
+type(TextureType::CONSTANT)
 {
-    config = MakeUP<ConstantTextureConfig>();
+    config = MakeUP<ConstantTextureConfig>(black);
+}
+
+TextureDesc::TextureDesc(real value) :
+type(TextureType::CONSTANT)
+{
+    config = MakeUP<ConstantTextureConfig>(value);
+}
+
+TextureDesc::TextureDesc(vec3 value) :
+type(TextureType::CONSTANT)
+{
+    config = MakeUP<ConstantTextureConfig>(value);
 }
 
 FM_ENGINE_END

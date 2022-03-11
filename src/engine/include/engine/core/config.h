@@ -23,9 +23,12 @@ public:
     };
 
     UP<Config> config;
-    TextureType type {TextureType::CONSTANT};
+    TextureType type;
+
+    TextureDesc();
+    explicit TextureDesc(real value);
+    explicit TextureDesc(vec3 value);
     void Load(const nlohmann::json &j) override;
-    void CreateDefault();
 };
 
 namespace json {
@@ -100,8 +103,7 @@ namespace json {
 
     static void WarningTextureDesc(const std::string& name, TextureDesc& value)
     {
-        value.CreateDefault();
-        spdlog::warn("Value for {} is not specified, use default: (0, 0, 0)", name);
+        spdlog::warn("Value for {} is not specified, use default.", name);
     }
 }
 
