@@ -12,6 +12,7 @@
 #include <engine/create/light.h>
 #include <fstream>
 #include <optional>
+#include <filesystem>
 
 FM_ENGINE_BEGIN
 
@@ -21,6 +22,7 @@ private:
     SP<const Camera> m_camera;
     SP<Renderer> m_render;
     SP<Scene> m_scene;
+    std::string m_scene_root;
 
     std::optional<std::reference_wrapper<const nlohmann::json>> GetOptional(const nlohmann::json &j, const std::string& field) const
     {
@@ -52,6 +54,10 @@ private:
     {
         auto c = GetOptional(m_config, "renderer");
         if (c) {
+            //register root path for output path
+            RendererConfig::SetRootPath(m_scene_root);
+
+            // parse render parameters
             std::string render_type = "path_tracer";
             json::LoadValue(c->get(), "type", render_type);
             if (render_type == "path_tracer") {
@@ -101,7 +107,7 @@ private:
             if (!env_path.empty()) {
                 TextureDesc desc;
                 desc.type = TextureDesc::TextureType::IMAGE;
-                desc.config = MakeUP<ImageTextureConfig>(env_path);
+                desc.config = MakeUP<ImageTextureConfig>(m_scene_root + env_path);
                 SP<Texture> sky = CreateTexture(desc);
                 SP<EnvLight> env_light = CreateEnvLight(sky);
                 m_scene->SetEnvLight(env_light);
@@ -122,7 +128,7 @@ private:
             if (shape_type == "triangle_mesh") {
                 std::string path;
                 json::LoadValue(shape_config->get(), "path", path);
-                CreateTriangleMesh(path, geometries);
+                CreateTriangleMesh(m_scene_root + path, geometries);
             } else if (shape_type == "sphere") {
                 // todo: fill sphere loading
             } else {
@@ -130,6 +136,9 @@ private:
                 throw std::runtime_error("Shape type not supported.");
             }
         }
+
+        // register root path for texture loading
+        ImageTextureConfig::SetRootPath(m_scene_root);
 
         // create material
         auto material_config = GetOptional(j, "material");
@@ -164,6 +173,16 @@ public:
     void Load(const std::string& path)
     {
         std::ifstream ifs(path);
+        m_config = nlohmann::json::parse(ifs);
+        ParseCamera();
+        ParseRender();
+        ParseScene();
+    }
+
+    void Load(const std::filesystem::path& path)
+    {
+        m_scene_root = path.parent_path().string() + '/';
+        std::ifstream ifs(path.string());
         m_config = nlohmann::json::parse(ifs);
         ParseCamera();
         ParseRender();

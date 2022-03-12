@@ -14,12 +14,20 @@
 FM_ENGINE_BEGIN
 
 class RendererConfig : public Config {
+private:
+    static std::string root_path;
+
 public:
     int width = 1;
     int height = 1;
     int spp = 10; // samples per pixel
     int thread_count = 8;
     std::string output = "result.png";
+
+    static void SetRootPath(const std::string& path)
+    {
+        root_path = path;
+    }
 
     void Load(const nlohmann::json &j) override
     {
@@ -29,6 +37,7 @@ public:
         FM_LOAD_IMPL(j, spp);
         FM_LOAD_IMPL(j, thread_count);
         FM_LOAD_IMPL(j, output);
+        output = root_path + output;
     }
 };
 

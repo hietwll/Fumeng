@@ -1,6 +1,7 @@
 #include <engine/core/texture.h>
 
 FM_ENGINE_BEGIN
+std::string ImageTextureConfig::root_path = {};
 
 SP<Texture> CreateImageTexture(const ImageTextureConfig& config);
 

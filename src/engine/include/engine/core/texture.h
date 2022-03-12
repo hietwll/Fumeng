@@ -4,6 +4,7 @@
 #include <engine/common.h>
 #include <engine/core/utils.h>
 #include <engine/core/config.h>
+#include <filesystem>
 
 FM_ENGINE_BEGIN
 
@@ -38,6 +39,9 @@ public:
 };
 
 class ImageTextureConfig : public TextureConfig {
+private:
+    static std::string root_path;
+
 public:
     std::string path;
     std::string sampler = "linear";
@@ -49,11 +53,17 @@ public:
     {
     }
 
+    static void SetRootPath(const std::string& path)
+    {
+        root_path = path;
+    }
+
     void Load(const nlohmann::json &j) override
     {
         TextureConfig::Load(j);
         FM_LOAD_IMPL(j, path);
         FM_LOAD_IMPL(j, sampler);
+        path = root_path + path;
     }
 };
 
