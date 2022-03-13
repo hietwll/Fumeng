@@ -24,17 +24,17 @@ public:
         rng = rng_t(seed);
     };
 
-    real Get1D() const
+    real Get1D()
     {
         return udis(rng);
     }
 
-    vec2 Get2D() const
+    vec2 Get2D()
     {
         return {Get1D(), Get1D()};
     }
 
-    vec3 Get3D() const
+    vec3 Get3D()
     {
         return {Get1D(), Get1D(), Get1D()};
     }

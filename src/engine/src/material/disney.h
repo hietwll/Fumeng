@@ -5,6 +5,13 @@
 
 FM_ENGINE_BEGIN
 
+class DisneySpecularReflection;
+class DisneyDiffuse;
+class DisneyClearCoat;
+class DisneyMicrofacetTransmission;
+class DisneyLambertianTransmission;
+class DisneyFakeSS;
+
 class DisneyBSDF : public BSDF
 {
 private:

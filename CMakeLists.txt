@@ -9,6 +9,12 @@ PROJECT(Fumeng)
 #    add_definitions(-DUSE_FLOAT)
 #endif(USE_FLOAT)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    MESSAGE("use gnu....")
+    SET(GCC_COVERAGE_COMPILE_FLAGS "-fpermissive")
+    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
+endif ()
+
 ADD_SUBDIRECTORY(thirdparty/glm)
 ADD_SUBDIRECTORY(thirdparty/spdlog)
 ADD_SUBDIRECTORY(thirdparty/thread_pool)
