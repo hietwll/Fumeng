@@ -2,6 +2,91 @@
 
 FM_ENGINE_BEGIN
 
+namespace triangle_func {
+    int GetMaxAxis(const vec3& v)
+    {
+        if (abs(v[0]) > abs(v[1]) && abs(v[0]) > abs(v[2]))
+            return 0;
+        return abs(v[1]) > abs(v[2]) ? 1 : 2;
+    }
+
+    vec3 Permute(const vec3& v, int x, int y, int z)
+    {
+        return vec3(v[x], v[y], v[z]);
+    }    
+
+    bool IntersectTriangle(const Ray &r, vec3 v0, vec3 v1, vec3 v2, vec3& bc, real& t)
+    {
+        // translate
+        v0 -= r.ori;
+        v1 -= r.ori;
+        v2 -= r.ori;
+
+        // get main axis
+        int az = GetMaxAxis(r.dir);
+        int ax = (az + 1) % 3;
+        int ay = (ax + 1) % 3;
+
+        // pick max axis
+        vec3 dir = Permute(r.dir, ax, ay, az);
+        v0 = Permute(v0, ax, ay, az);
+        v1 = Permute(v1, ax, ay, az);
+        v2 = Permute(v2, ax, ay, az);
+
+        // shear
+        real sx = -dir.x / dir.z;
+        real sy = -dir.y / dir.z;
+        real sz = 1.0_r / dir.z;
+
+        v0.x += sx * v0.z;
+        v0.y += sy * v0.z;
+        v1.x += sx * v1.z;
+        v1.y += sy * v1.z;
+        v2.x += sx * v2.z;
+        v2.y += sy * v2.z;
+
+        // compute edge function coefficients
+        real e0 = v1.x * v2.y - v1.y * v2.x;
+        real e1 = v2.x * v0.y - v2.y * v0.x;
+        real e2 = v0.x * v1.y - v0.y * v1.x;
+
+        // fall back to double precision
+        if(sizeof(real) == sizeof(float) &&
+        (e0 == 0.0f || e1 == 0.0f || e2 == 0.0f)){
+            e0 = (real)((double)v1.x * (double)v2.y - (double)v1.y * (double)v2.x);
+            e1 = (real)((double)v2.x * (double)v0.y - (double)v2.y * (double)v0.x);
+            e2 = (real)((double)v0.x * (double)v1.y - (double)v0.y * (double)v1.x);
+        }
+
+        if ((e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)) {
+            return false;
+        }
+
+        const real det = e0 + e1 + e2;
+        if (det == 0) {
+            return false;
+        }
+
+        v0.z *= sz;
+        v1.z *= sz;
+        v2.z *= sz;
+
+        const real invDet = 1.0_r / det;
+        t = (e0 * v0.z + e1 * v1.z + e2 * v2.z) * invDet;
+
+        if (t <= r.t_min || t >= r.t_max) {
+            return false;
+        }
+
+        // get barycentric coordinates
+        bc.x = e0 * invDet;
+        bc.y = e1 * invDet;
+        bc.z = e2 * invDet;
+
+        return true;    
+    }
+}
+
 TriangleMesh::TriangleMesh(const std::string& inputfile)
 {
     std::string warn;
@@ -23,9 +108,12 @@ Triangle::Triangle(SP<const TriangleMesh> mesh, const vidx& idx0, const vidx& id
   m_idx1(idx1),
   m_idx2(idx2)
 {
-    const auto e0 = GetPos(m_idx1) - GetPos(m_idx0);
-    const auto e1 = GetPos(m_idx2) - GetPos(m_idx0);
-    const auto pg = cross(e0 , e1);
+    m_v0 = GetPos(m_idx0);
+    m_v1 = GetPos(m_idx1);
+    m_v2 = GetPos(m_idx2);
+    const auto e0 = m_v1 - m_v0;
+    const auto e1 = m_v2 - m_v0;
+    const auto pg = glm::cross(e0 , e1);
     m_area = glm::length(pg) * 0.5_r;
 }
     
@@ -55,14 +143,14 @@ bool Triangle::IsIntersect(const Ray &r) const
 {
     vec3 bc;
     real t;
-    return IntersectTriangle(r, bc, t);
+    return triangle_func::IntersectTriangle(r, m_v0, m_v1, m_v2, bc, t);
 }
 
 bool Triangle::GetIntersect(const Ray &r, HitPoint *hit_point) const
 {
     vec3 bc;
     real t;
-    bool intersected = IntersectTriangle(r, bc, t);
+    bool intersected = triangle_func::IntersectTriangle(r, m_v0, m_v1, m_v2, bc, t);
 
     if (!intersected) {
         return false;
@@ -90,88 +178,11 @@ bool Triangle::GetIntersect(const Ray &r, HitPoint *hit_point) const
                         bc.y * GetNormal(m_idx1) +
                         bc.z * GetNormal(m_idx2);
     } else {
-        hit_point->ng = glm::normalize(glm::cross(GetPos(m_idx0) - GetPos(m_idx2),
-                                                  GetPos(m_idx1) - GetPos(m_idx2)));
+        hit_point->ng = glm::normalize(glm::cross(m_v0 - m_v2, m_v1 - m_v2));
     }
     hit_point->ns = hit_point->ng;
 
-    hit_point->ss = glm::normalize(GetPos(m_idx1) - GetPos(m_idx0));
-
-    return true;
-}
-
-bool Triangle::IntersectTriangle(const Ray &r, vec3& bc, real& t) const
-{
-    // transform vertex position to ray space
-    vec3 v0 = GetPos(m_idx0);
-    vec3 v1 = GetPos(m_idx1);
-    vec3 v2 = GetPos(m_idx2);
-
-    // translate
-    v0 -= r.ori;
-    v1 -= r.ori;
-    v2 -= r.ori;
-
-    // get main axis
-    int az = GetMaxAxis(r.dir);
-    int ax = (az + 1) % 3;
-    int ay = (ax + 1) % 3;
-
-    // pick max axis
-    vec3 dir = Permute(r.dir, ax, ay, az);
-    v0 = Permute(v0, ax, ay, az);
-    v1 = Permute(v1, ax, ay, az);
-    v2 = Permute(v2, ax, ay, az);
-
-    // shear
-    real sx = -dir.x / dir.z;
-    real sy = -dir.y / dir.z;
-    real sz = 1.0_r / dir.z;
-
-    v0.x += sx * v0.z;
-    v0.y += sy * v0.z;
-    v1.x += sx * v1.z;
-    v1.y += sy * v1.z;
-    v2.x += sx * v2.z;
-    v2.y += sy * v2.z;
-
-    // compute edge function coefficients
-    real e0 = v1.x * v2.y - v1.y * v2.x;
-    real e1 = v2.x * v0.y - v2.y * v0.x;
-    real e2 = v0.x * v1.y - v0.y * v1.x;
-
-    // fall back to double precision
-    if(sizeof(real) == sizeof(float) &&
-    (e0 == 0.0f || e1 == 0.0f || e2 == 0.0f)){
-        e0 = (real)((double)v1.x * (double)v2.y - (double)v1.y * (double)v2.x);
-        e1 = (real)((double)v2.x * (double)v0.y - (double)v2.y * (double)v0.x);
-        e2 = (real)((double)v0.x * (double)v1.y - (double)v0.y * (double)v1.x);
-    }
-
-    if ((e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)) {
-        return false;
-    }
-
-    const real det = e0 + e1 + e2;
-    if (det == 0) {
-        return false;
-    }
-
-    v0.z *= sz;
-    v1.z *= sz;
-    v2.z *= sz;
-
-    const real invDet = 1.0_r / det;
-    t = (e0 * v0.z + e1 * v1.z + e2 * v2.z) * invDet;
-
-    if (t <= r.t_min || t >= r.t_max) {
-        return false;
-    }
-
-    // get barycentric coordinates
-    bc.x = e0 * invDet;
-    bc.y = e1 * invDet;
-    bc.z = e2 * invDet;
+    hit_point->ss = glm::normalize(m_v1 - m_v0);
 
     return true;
 }
@@ -185,7 +196,7 @@ HitPoint Triangle::Sample(real *pdf, const vec3 &sample) const
     const real b2 = 1.0_r - b0 - b1;
 
     HitPoint hitPoint;
-    hitPoint.pos = b0 * GetPos(m_idx0) + b1 * GetPos(m_idx1) + b2 * GetPos(m_idx2);
+    hitPoint.pos = b0 * m_v0 + b1 * m_v1 + b2 * m_v2;
 
     const vec2 uv = b0 * GetUV(m_idx0) +
                     b1 * GetUV(m_idx1) +
@@ -201,12 +212,12 @@ HitPoint Triangle::Sample(real *pdf, const vec3 &sample) const
                       b1 * GetNormal(m_idx1) +
                       b2 * GetNormal(m_idx2);
     } else {
-        hitPoint.ng = glm::normalize(glm::cross(GetPos(m_idx0) - GetPos(m_idx2), GetPos(m_idx1) - GetPos(m_idx2)));
+        hitPoint.ng = glm::normalize(glm::cross(m_v0 - m_v2, m_v1 - m_v2));
     }
 
     hitPoint.ns = hitPoint.ng;
 
-    hitPoint.ss = glm::normalize(GetPos(m_idx1) - GetPos(m_idx0));
+    hitPoint.ss = glm::normalize(m_v1 - m_v0);
 
     *pdf = Pdf(hitPoint.pos, sample);
 
@@ -228,29 +239,13 @@ real Triangle::Area() const
     return m_area;
 }
 
-int Triangle::GetMaxAxis(const vec3& v) const
-{
-    if (abs(v[0]) > abs(v[1]) && abs(v[0]) > abs(v[2]))
-        return 0;
-    return abs(v[1]) > abs(v[2]) ? 1 : 2;
-}
-
-vec3 Triangle::Permute(const vec3& v, int x, int y, int z) const
-{
-    return vec3(v[x], v[y], v[z]);
-}
-
 BBox Triangle::WorldBound() const
 {
     BBox box;
 
-    vec3 v0 = GetPos(m_idx0);
-    vec3 v1 = GetPos(m_idx1);
-    vec3 v2 = GetPos(m_idx2);
-
-    box |= v0;
-    box |= v1;
-    box |= v2;
+    box |= m_v0;
+    box |= m_v1;
+    box |= m_v2;
 
     return box;
 }

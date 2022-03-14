@@ -4,8 +4,23 @@
 #include <engine/common.h>
 #include <engine/core/transform.h>
 #include <engine/core/bbox.h>
+#include <engine/core/config.h>
 
 FM_ENGINE_BEGIN
+
+class RectangleConfig : public Config
+{
+public:
+    vec3 pa, pb, pc, pd;
+
+    void Load(const nlohmann::json &j) override
+    {
+        FM_LOAD_IMPL(j, pa);
+        FM_LOAD_IMPL(j, pb);
+        FM_LOAD_IMPL(j, pc);
+        FM_LOAD_IMPL(j, pd);
+    }    
+};
 
 class Geometry
 {

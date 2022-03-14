@@ -26,6 +26,7 @@ private:
     const vidx& m_idx0;
     const vidx& m_idx1;
     const vidx& m_idx2;
+    vec3 m_v0, m_v1, m_v2;
 
     // area
     real m_area;
@@ -37,16 +38,12 @@ public:
     vec2 GetUV(const vidx& idx) const;
     bool IsIntersect(const Ray &r) const override;
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const override;
-    bool IntersectTriangle(const Ray &r, vec3& bc, real& t) const;
     HitPoint Sample(real *pdf, const vec3 &sample) const override;
     HitPoint Sample(const HitPoint& ref, real *pdf, const vec3 &sample) const override;
     real Pdf(const vec3& shd_pos, const vec3& sample) const override;
     real Area() const override;
-    int GetMaxAxis(const vec3& v) const;
-    vec3 Permute(const vec3& v, int x, int y, int z) const;
     BBox WorldBound() const override;
-}
-;
+};
 
 class TriangleMesh
 {
@@ -60,6 +57,13 @@ public:
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
 };
+
+namespace triangle_func {
+    bool IntersectTriangle(const Ray &r, vec3 v0, vec3 v1, vec3 v2,
+                           vec3& bc, real& t);
+    int GetMaxAxis(const vec3& v);
+    vec3 Permute(const vec3& v, int x, int y, int z);                      
+}
 
 FM_ENGINE_END
 
