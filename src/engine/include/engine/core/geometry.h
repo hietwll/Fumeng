@@ -22,6 +22,23 @@ public:
     }    
 };
 
+class SphereConfig : public Config
+{
+public:
+    real radius {1.0_r};
+    vec3 translation;
+    vec3 rotation;
+    vec3 scale {1.0_r, 1.0_r, 1.0_r};
+
+    void Load(const nlohmann::json &j) override
+    {
+        FM_LOAD_IMPL(j, radius);
+        FM_LOAD_IMPL(j, translation);
+        FM_LOAD_IMPL(j, rotation);
+        FM_LOAD_IMPL(j, scale);
+    }    
+};
+
 class Geometry
 {
 protected:

@@ -5,8 +5,10 @@
 
 FM_ENGINE_BEGIN
 
+SP<Geometry> CreateSphere(const SphereConfig& config);
 SP<Geometry> CreateSphere(real radius, const Transform& to_world);
 void CreateTriangleMesh(const std::string& filename, std::vector<SP<const Geometry>>& geometries);
+SP<Geometry> CreateRectangle(const RectangleConfig& config);
 
 FM_ENGINE_END
 

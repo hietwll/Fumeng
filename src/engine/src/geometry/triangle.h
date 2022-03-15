@@ -7,11 +7,6 @@
 #include <engine/core/hit_point.h>
 #include <string>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#ifndef USE_FLOAT
-#define TINYOBJLOADER_USE_DOUBLE
-#endif
-
 #include <tiny_obj_loader.h>
 
 FM_ENGINE_BEGIN

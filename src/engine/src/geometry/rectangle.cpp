@@ -152,4 +152,9 @@ public:
     }
 };
 
+SP<Geometry> CreateRectangle(const RectangleConfig& config)
+{
+    return MakeSP<Rectangle>(config);
+}
+
 FM_ENGINE_END

@@ -130,7 +130,13 @@ private:
                 json::LoadValue(shape_config->get(), "path", path);
                 CreateTriangleMesh(m_scene_root + path, geometries);
             } else if (shape_type == "sphere") {
-                // todo: fill sphere loading
+                SphereConfig config;
+                config.Load(shape_config->get());
+                geometries.push_back(CreateSphere(config));
+            } else if (shape_type == "rectangle") {
+                RectangleConfig config;
+                config.Load(shape_config->get());
+                geometries.push_back(CreateRectangle(config));
             } else {
                 spdlog::error("Shape type not supported: {}.", shape_type);
                 throw std::runtime_error("Shape type not supported.");
@@ -160,10 +166,14 @@ private:
             }
         }
 
+        // parse emittance
+        vec3 emittance = black;
+        json::LoadValue(j, "emittance", emittance);                        
+
         // create render objects
         for (auto& geom : geometries) {
             // todo: add emissive parameter in json
-            objs.push_back(CreateRenderObject(geom, material, black));
+            objs.push_back(CreateRenderObject(geom, material, emittance));
         }
     }
 

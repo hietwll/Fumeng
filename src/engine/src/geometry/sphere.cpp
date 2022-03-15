@@ -16,13 +16,18 @@ private:
     real area;
 
 public:
-    Sphere(real r, const Transform& to_world)
-    : radius(r), Geometry(to_world)
+    Sphere(real r, const Transform& to_world) :
+    radius(r), Geometry(to_world)
     {
         radius_world = radius *
                 glm::length(to_world.ApplyToVec3(vec3(1.0_r, 0.0_r, 0.0_r)));
         rw2 = radius_world * radius_world;
         area = 4.0_r * PI * rw2;
+    }
+
+    Sphere(const SphereConfig& config) :
+    Sphere(config.radius, Transform(config.translation, config.rotation, config.scale))
+    {
     }
 
     bool IsIntersect(const Ray &r) const override
@@ -216,6 +221,11 @@ public:
 SP<Geometry> CreateSphere(real radius, const Transform& to_world)
 {
     return MakeSP<Sphere>(radius, to_world);
+}
+
+SP<Geometry> CreateSphere(const SphereConfig& config)
+{
+    return MakeSP<Sphere>(config);
 }
 
 FM_ENGINE_END

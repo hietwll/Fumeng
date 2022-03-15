@@ -4,7 +4,6 @@
 #include <engine/common.h>
 #include <nlohmann/json.hpp>
 
-
 FM_ENGINE_BEGIN
 
 #define FM_LOAD_IMPL(x, y) json::LoadValue(x, #y, y)
@@ -92,18 +91,18 @@ namespace json {
     template <class T>
     static void WarningDefault(const std::string& name, const T& value)
     {
-        spdlog::warn("Value for key {} is not specified, use default: {}", name, value);
+        //spdlog::warn("Value for key {} is not specified, use default: {}", name, value);
     }
 
     static void WarningVec3(const std::string& name, const vec3& value)
     {
-        spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", name,
-                     value.x, value.y, value.z);
+        // spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", name,
+        //              value.x, value.y, value.z);
     }
 
     static void WarningTextureDesc(const std::string& name, TextureDesc& value)
     {
-        spdlog::warn("Value for {} is not specified, use default.", name);
+        //spdlog::warn("Value for {} is not specified, use default.", name);
     }
 }
 
