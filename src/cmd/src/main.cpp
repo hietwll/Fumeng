@@ -13,6 +13,8 @@ void excute(const std::string& scene_str)
 int main(int argc, char *argv[])
 {
     try {
+        spdlog::info("Fumeng Engine");
+        spdlog::info("Using {} precision.", sizeof(real)==sizeof(double) ? "double" : "float");
         if (argc < 1) {
             spdlog::error("Please input the scene file.");
             return -1;

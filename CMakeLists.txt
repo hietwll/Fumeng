@@ -2,17 +2,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 PROJECT(Fumeng)
 
-#option(USE_FLOAT "Use float precision for calculation" OFF)
-#
-#if(USE_FLOAT)
-#    message("Use float precision for calculation")
-#    add_definitions(-DUSE_FLOAT)
-#endif(USE_FLOAT)
+option(USE_FLOAT "Use single precision (float)" OFF)
 
-# if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#     SET(GCC_COVERAGE_COMPILE_FLAGS "-fpermissive")
-#     SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
-# endif ()
+if(USE_FLOAT)
+   message("Use single precision (float)")
+   add_definitions(-DUSE_FLOAT)
+endif(USE_FLOAT)
 
 ADD_SUBDIRECTORY(thirdparty/glm)
 ADD_SUBDIRECTORY(thirdparty/spdlog)

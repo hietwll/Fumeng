@@ -194,13 +194,13 @@ inline void Filmic(vec3& pixel, real lum)
 template<typename T>
 inline auto Lerp(const T& start, const T& end, real amt)
 {
-    return (1.0 - amt) * start + amt * end;
+    return (1.0_r - amt) * start + amt * end;
 }
 
 inline vec3 ToTint(const vec3& color)
 {
-    const auto luminance = RGBToLuminance(color);
-    return luminance > 0.0 ? color * (1.0 / luminance) : white;
+    const real luminance = RGBToLuminance(color);
+    return luminance > 0.0_r ? color * (1.0_r / luminance) : white;
 }
 
 /*
