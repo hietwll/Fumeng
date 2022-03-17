@@ -65,6 +65,7 @@ private:
     real m_c_specular_refl;
     real m_c_clearcoat;
     real m_c_specular_trans;
+    real m_c_diff_trans;
 
     // submodels
     UP<DisneySpecularReflection> m_disney_specular_reflection;

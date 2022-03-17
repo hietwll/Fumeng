@@ -462,6 +462,7 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     m_c_specular_refl = m_w_specular_refl + m_c_diffuse_refl;
     m_c_clearcoat = m_w_clearcoat + m_c_specular_refl;
     m_c_specular_trans = m_w_specular_trans + m_c_clearcoat;
+    m_c_diff_trans = m_w_diffuse_trans + m_c_specular_trans;
 
     // submodels
     m_disney_specular_reflection = MakeUP<DisneySpecularReflection>(this);
@@ -545,17 +546,20 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
 
 vec3 DisneyBSDF::RouletteSample(const vec3 &wo, real roulette, const vec3& samples) const
 {
-    if (roulette < m_c_diffuse_refl) {
+    if (roulette <= m_c_diffuse_refl) {
         return m_disney_diffuse->Sample(wo, samples);
-    } else if (roulette < m_c_specular_refl) {
+    } else if (roulette <= m_c_specular_refl) {
         return m_disney_specular_reflection->Sample(wo, samples);
-    } else if (roulette < m_c_clearcoat) {
+    } else if (roulette <= m_c_clearcoat) {
         return m_disney_clearcoat->Sample(wo, samples);
-    } else if (roulette < m_c_specular_trans){
+    } else if (roulette <= m_c_specular_trans){
         return m_thin ? m_disney_rough_transmission->Sample(wo, samples) :
                 m_disney_specular_transmission->Sample(wo, samples);
-    } else {
+    } else if (roulette <= m_c_diff_trans) {
         return m_disney_lambert_transmission->Sample(wo, samples);
+    } else {
+        // fall back to diffuse at corner case for single precision
+        return m_disney_diffuse->Sample(wo, samples);
     }
 }
 
