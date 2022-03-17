@@ -131,7 +131,7 @@ public:
         }
     }
 
-    virtual vec3 RenderPixel(Scene& scene, Ray& ray) const
+    virtual vec3 RenderPixel(Scene& scene, Ray& ray)
     {
         return black;
     }

@@ -26,13 +26,13 @@ public:
     {
     }
 
-    vec3 RenderPixel(Scene& scene, Ray& ray) const override;
-    vec3 MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint) const;
-    vec3 MisBSDF(const Scene& scene, const HitPoint& hitPoint) const;
-    vec3 MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const;
+    vec3 RenderPixel(Scene& scene, Ray& ray) override;
+    vec3 MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint);
+    vec3 MisBSDF(const Scene& scene, const HitPoint& hitPoint);
+    vec3 MisEnvLight(const Scene& scene, const HitPoint& hitPoint);
 };
 
-vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray) const
+vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray)
 {
     // init parameters
     vec3 color = black;
@@ -115,7 +115,7 @@ vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray) const
 /*
  * Multiple Importance Sampling for light
  */
-vec3 PathTracer::MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint) const
+vec3 PathTracer::MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint)
 {
     // sample the light
     auto light_sample = light->Sample(hitPoint, m_sampler.Get3D());
@@ -151,7 +151,7 @@ vec3 PathTracer::MisLight(const Scene& scene, const Light* light, const HitPoint
 /*
  * Multiple Importance Sampling for EnvLight
  */
-vec3 PathTracer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const
+vec3 PathTracer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint)
 {
     auto envLight = scene.GetEnvLight();
     if (envLight == nullptr) {
@@ -191,7 +191,7 @@ vec3 PathTracer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint) const
 /*
  * Multiple Importance Sampling for BSDF
  */
-vec3 PathTracer::MisBSDF(const Scene& scene, const HitPoint& hitPoint) const
+vec3 PathTracer::MisBSDF(const Scene& scene, const HitPoint& hitPoint)
 {
     // sample bsdf
     auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, m_sampler.Get3D());

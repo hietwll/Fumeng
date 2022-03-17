@@ -32,28 +32,6 @@ public:
 
 namespace json {
     template <class T>
-    static void LoadValue(const nlohmann::json &j, const std::string& name, T& value) {
-        if (j.find(name) == j.end()) {
-            if constexpr (std::is_same<T, vec3>::value) {
-                WarningVec3(name, static_cast<vec3>(value));
-            } else if constexpr(std::is_same<T, TextureDesc>::value) {
-                WarningTextureDesc(name, value);
-            } else {
-                WarningDefault(name, value);
-            }
-            return;
-        }
-
-        if constexpr (std::is_same<T, vec3>::value) {
-            ParseVec3(j, name, value);
-        } else if constexpr(std::is_same<T, TextureDesc>::value) {
-            ParseTextureDesc(j, name, value);
-        } else {
-            ParseDefault(j, name, value);
-        }
-    }
-
-    template <class T>
     static void ParseDefault(const nlohmann::json &j, const std::string& name, T& value)
     {
         try {
@@ -91,18 +69,36 @@ namespace json {
     template <class T>
     static void WarningDefault(const std::string& name, const T& value)
     {
-        //spdlog::warn("Value for key {} is not specified, use default: {}", name, value);
     }
 
     static void WarningVec3(const std::string& name, const vec3& value)
     {
-        // spdlog::warn("Value for {} is not specified, use default: ({}, {}, {})", name,
-        //              value.x, value.y, value.z);
     }
 
     static void WarningTextureDesc(const std::string& name, TextureDesc& value)
     {
-        //spdlog::warn("Value for {} is not specified, use default.", name);
+    }
+
+    template <class T>
+    static void LoadValue(const nlohmann::json &j, const std::string& name, T& value) {
+        if (j.find(name) == j.end()) {
+            if constexpr (std::is_same<T, vec3>::value) {
+                WarningVec3(name, static_cast<vec3>(value));
+            } else if constexpr(std::is_same<T, TextureDesc>::value) {
+                WarningTextureDesc(name, value);
+            } else {
+                WarningDefault(name, value);
+            }
+            return;
+        }
+
+        if constexpr (std::is_same<T, vec3>::value) {
+            ParseVec3(j, name, value);
+        } else if constexpr(std::is_same<T, TextureDesc>::value) {
+            ParseTextureDesc(j, name, value);
+        } else {
+            ParseDefault(j, name, value);
+        }
     }
 }
 
