@@ -26,9 +26,9 @@ class SphereConfig : public Config
 {
 public:
     real radius {1.0_r};
-    vec3 translation;
-    vec3 rotation;
-    vec3 scale {1.0_r, 1.0_r, 1.0_r};
+    vec3 translation {black};
+    vec3 rotation {black};
+    vec3 scale {white};
 
     void Load(const nlohmann::json &j) override
     {

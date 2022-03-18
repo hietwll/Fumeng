@@ -7,6 +7,8 @@ FM_ENGINE_BEGIN
 
 SP<Camera> CreatePinPoleCamera(const PinHoleCameraConfig& config);
 
+SP<Camera> CreateThinLensCamera(const ThinLensCameraConfig& config);
+
 FM_ENGINE_END
 
 #endif

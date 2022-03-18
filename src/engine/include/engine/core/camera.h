@@ -28,11 +28,23 @@ public:
     }
 };
 
+class ThinLensCameraConfig : public PinHoleCameraConfig
+{
+public:
+    real lens_radius;
+
+    void Load(const nlohmann::json &j) override
+    {
+        PinHoleCameraConfig::Load(j);
+        FM_LOAD_IMPL(j, lens_radius);   
+    }    
+};
+
 class Camera
 {
 public:
     virtual ~Camera() = default;
-    virtual Ray SampleRay(const vec2& ndc_pos) const = 0;
+    virtual Ray SampleRay(const vec2& ndc_pos, const vec2& lens_sample) const = 0;
 };
 
 FM_ENGINE_END

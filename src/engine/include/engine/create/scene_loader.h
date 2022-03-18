@@ -44,6 +44,11 @@ private:
                 config.Load(c->get());
                 m_camera = CreatePinPoleCamera(config);
                 return;
+            } else if (camera_type == "thin_lens") {
+                ThinLensCameraConfig config;
+                config.Load(c->get());
+                m_camera = CreateThinLensCamera(config);
+                return;
             }
         }
 

@@ -98,9 +98,10 @@ public:
                     m_image(i, j_flip) = black;
                     for(int k = 0; k < m_spp; k++) {
                         const vec2 film_sample = m_sampler.Get2D();
+                        const vec2 lens_sample = m_sampler.Get2D();
                         const real px = (i + film_sample.x) / res_x;
                         const real py = (j + film_sample.y) / res_y;
-                        Ray camera_ray = scene.GetCamera()->SampleRay({px, py});
+                        Ray camera_ray = scene.GetCamera()->SampleRay({px, py}, lens_sample);
                         m_image(i, j_flip) += RenderPixel(scene, camera_ray);
                     }
                     m_image(i, j_flip) /= m_spp;

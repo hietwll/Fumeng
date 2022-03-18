@@ -1,28 +1,6 @@
-#include <engine/core/camera.h>
-#include <engine/core/transform.h>
-#include <engine/core/ray.h>
-#include <engine/core/utils.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include "pin_hole_camera.h"
 
 FM_ENGINE_BEGIN
-
-class PinHoleCamera : public Camera
-{
-private:
-    vec3 m_pos; // world space
-    vec3 m_look_at; // world space
-    vec3 m_up; // world space
-    real m_fov; // Degree
-    real m_aspect = 1.0_r;
-    real m_focal_distance;
-    real m_film_width = 1.0_r;
-    real m_film_height = 1.0_r;
-    Transform m_camera_to_world;
-public:
-    PinHoleCamera(const PinHoleCameraConfig& config);
-    Ray SampleRay(const vec2& ndc_pos) const override;
-    Transform LookAt(vec3 eye, vec3 dst, vec3 up);
-};
 
 PinHoleCamera::PinHoleCamera(const PinHoleCameraConfig& config) :
 m_pos(config.pos),
@@ -67,9 +45,9 @@ Transform PinHoleCamera::LookAt(vec3 eye, vec3 dst, vec3 up)
 }
 
 /*
- * sample the camera and return a ray in world space
+ * Sample the camera and return a ray in world space
  */
-Ray PinHoleCamera::SampleRay(const vec2 &ndc_pos) const
+Ray PinHoleCamera::SampleRay(const vec2 &ndc_pos, const vec2& lens_sample) const
 {
     const vec3 film_pos_loc = vec3((ndc_pos.x - 0.5_r) * m_film_width, (ndc_pos.y - 0.5_r) * m_film_height, m_focal_distance);
     const vec3 film_pos = m_camera_to_world.ApplyToPoint(film_pos_loc);
