@@ -31,6 +31,9 @@ public:
     vec3 GetPos(const vidx& idx) const;
     vec3 GetNormal(const vidx& idx) const;
     vec2 GetUV(const vidx& idx) const;
+    vec3 GetNormal(int idx) const;
+    vec2 GetUV(int idx) const;
+    bool HasNormal() const;    
     bool IsIntersect(const Ray &r) const override;
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const override;
     HitPoint Sample(real *pdf, const vec3 &sample) const override;
@@ -38,6 +41,7 @@ public:
     real Pdf(const vec3& shd_pos, const vec3& sample) const override;
     real Area() const override;
     BBox WorldBound() const override;
+    const vec3& GetVertex(int idx) const;
 };
 
 class TriangleMesh

@@ -146,6 +146,51 @@ vec2 Triangle::GetUV(const vidx& idx) const
     }
 }
 
+vec3 Triangle::GetNormal(int idx) const
+{
+    assert(idx >= 0 && idx <=2);
+
+    if (idx == 0) {
+        return GetNormal(m_idx0);
+    } else if (idx == 1) {
+        return GetNormal(m_idx1);
+    } else {
+        return GetNormal(m_idx2);
+    }
+}
+
+vec2 Triangle::GetUV(int idx) const
+{
+    assert(idx >= 0 && idx <=2);
+
+    if (idx == 0) {
+        return GetUV(m_idx0);
+    } else if (idx == 1) {
+        return GetUV(m_idx1);
+    } else {
+        return GetUV(m_idx2);
+    }
+}
+
+bool Triangle::HasNormal() const
+{
+    return m_idx0.normal_index >= 0 &&
+           m_idx1.normal_index >= 0 &&
+           m_idx2.normal_index >= 0; 
+}
+
+const vec3& Triangle::GetVertex(int idx) const
+{
+    assert(idx >= 0 && idx <=2);
+    if (idx == 0) {
+        return m_v0;
+    } else if (idx == 1) {
+        return m_v1;
+    } else {
+        return m_v2;
+    }    
+}
+
 bool Triangle::IsIntersect(const Ray &r) const
 {
     vec3 bc;

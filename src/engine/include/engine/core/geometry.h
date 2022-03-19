@@ -45,6 +45,7 @@ protected:
     Transform object_to_world;
     Transform world_to_object;
 public:
+    Geometry() = default;
     Geometry(const Transform& to_world) :
     object_to_world(to_world), world_to_object(object_to_world.InvTransform())
     {
