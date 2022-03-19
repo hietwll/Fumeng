@@ -136,8 +136,7 @@ TriangleEmbree::TriangleEmbree(const std::string& filename)
     m_embree_geom_id = rtcAttachGeometry(m_embree_scene, embree_geom);
     
     rtcSetSceneBuildQuality(m_embree_scene, RTC_BUILD_QUALITY_HIGH);
-    rtcCommitScene(m_embree_scene);    
-        
+    rtcCommitScene(m_embree_scene);       
 }
 
 void TriangleEmbree::CheckEmbreeError()
@@ -278,6 +277,11 @@ real TriangleEmbree::Area() const
 BBox TriangleEmbree::WorldBound() const
 {
     return m_box_world;
+}
+
+SP<Geometry> CreateEmbreeTriangle(const std::string& filename)
+{
+    return MakeSP<TriangleEmbree>(filename);
 }
 
 FM_ENGINE_END

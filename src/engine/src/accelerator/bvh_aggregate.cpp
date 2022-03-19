@@ -115,7 +115,7 @@ private:
             }
             return ret;
         } else { //interior node
-            // must go through
+            // must go through, may have intersection with both left and right
             auto left = GetIntersectImpl(r, dir_inv, m_nodes[node.idx_a], hit_point);
             auto right = GetIntersectImpl(r, dir_inv, m_nodes[node.idx_b], hit_point);
             return left || right;
@@ -131,7 +131,7 @@ public:
     void Build()
     {
         if (m_objects.empty()) {
-            spdlog::error("Zero object when building bvh!");
+            spdlog::warn("No object was found when building bvh!");
             return;
         }
 
@@ -152,7 +152,7 @@ public:
 
     bool IsIntersect(const Ray &r) const override
     {
-        if (m_nodes.size() < 0) {
+        if (m_nodes.size() == 0) {
             return false;
         }
 
@@ -162,7 +162,7 @@ public:
 
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const override
     {
-        if (m_nodes.size() < 0) {
+        if (m_nodes.size() == 0) {
             return false;
         }
 

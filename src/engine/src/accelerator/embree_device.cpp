@@ -20,6 +20,17 @@ void EbreeDevice::DestroyDevice()
     rtcReleaseDevice(m_device);
 }
 
+
+void CreateEmbreeDevice()
+{
+    EbreeDevice::GetDevice();
+}
+
+void DestroyEmbreeDevice()
+{
+    EbreeDevice::DestroyDevice();
+}
+
 FM_ENGINE_END
 
 #endif

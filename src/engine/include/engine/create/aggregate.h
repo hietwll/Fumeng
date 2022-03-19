@@ -9,6 +9,8 @@ SP<Aggregate> CreateSimpleAggregate(const std::vector<SP<const RenderObject>>& o
 
 SP<Aggregate> CreateBVHAggregate(const std::vector<SP<const RenderObject>>& objects);
 
+SP<Aggregate> CreateEmbreeAggregate(const std::vector<SP<const RenderObject>>& objects);
+
 FM_ENGINE_END
 
 #endif

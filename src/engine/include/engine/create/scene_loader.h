@@ -10,6 +10,7 @@
 #include <engine/create/scene.h>
 #include <engine/create/texture.h>
 #include <engine/create/light.h>
+#include <engine/create/embree.h>
 #include <fstream>
 #include <optional>
 #include <filesystem>
@@ -23,6 +24,7 @@ private:
     SP<Renderer> m_render;
     SP<Scene> m_scene;
     std::string m_scene_root;
+    std::string m_acc_type = "bvh";
 
     std::optional<std::reference_wrapper<const nlohmann::json>> GetOptional(const nlohmann::json &j, const std::string& field) const
     {
@@ -80,6 +82,15 @@ private:
     {
         auto c = GetOptional(m_config, "scene");
         if (c) {
+            // create aggregate
+            SP<const Aggregate> aggregate;
+            
+            // must first load accelerator configuration
+            auto acc_config = GetOptional(c->get(), "accelerator");
+            if (acc_config) {
+                json::LoadValue(acc_config->get(), "type", m_acc_type);
+            }
+
             // create render objects
             auto obj_configs = GetOptional(c->get(), "render_objects");
             std::vector<SP<const RenderObject>> render_objects;
@@ -89,16 +100,12 @@ private:
                 }
             }
 
-            // create aggregate
-            SP<const Aggregate> aggregate;
-            std::string accelerator_type = "bvh";
-            auto bvh_config = GetOptional(c->get(), "bvh");
-            if (bvh_config) {
-                json::LoadValue(bvh_config->get(), "type", accelerator_type);
-            }
-
-            if (accelerator_type == "simple") {
+            if (m_acc_type == "naive") {
                 aggregate = CreateSimpleAggregate(render_objects);
+#ifdef USE_EMBREE
+            } else if (m_acc_type == "embree") {
+                aggregate = CreateEmbreeAggregate(render_objects);
+#endif                
             } else {
                 aggregate = CreateBVHAggregate(render_objects);
             }
@@ -133,7 +140,14 @@ private:
             if (shape_type == "triangle_mesh") {
                 std::string path;
                 json::LoadValue(shape_config->get(), "path", path);
-                CreateTriangleMesh(m_scene_root + path, geometries);
+#ifdef USE_EMBREE
+                if (m_acc_type == "embree") {
+                    geometries.push_back(CreateEmbreeTriangle(m_scene_root + path));
+                } else
+#endif
+                {
+                    CreateTriangleMesh(m_scene_root + path, geometries);
+                } 
             } else if (shape_type == "sphere") {
                 SphereConfig config;
                 config.Load(shape_config->get());
@@ -183,15 +197,18 @@ private:
     }
 
 public:
-    SceneLoader() {};
-
-    void Load(const std::string& path)
+    SceneLoader() 
     {
-        std::ifstream ifs(path);
-        m_config = nlohmann::json::parse(ifs);
-        ParseCamera();
-        ParseRender();
-        ParseScene();
+#ifdef USE_EMBREE
+        CreateEmbreeDevice();
+#endif        
+    };
+
+    ~SceneLoader()
+    {
+#ifdef USE_EMBREE
+        DestroyEmbreeDevice();
+#endif         
     }
 
     void Load(const std::filesystem::path& path)
