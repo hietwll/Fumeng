@@ -106,11 +106,10 @@ TriangleEmbree::TriangleEmbree(const std::string& filename)
     for (size_t i = 0; i < triangle_count; i++)
     {
         const auto& triangle = m_triangles[i];
-        copy_vertices(vertices[i + 0], triangle.GetVertex(0));
-        copy_vertices(vertices[i + 1], triangle.GetVertex(1));
-        copy_vertices(vertices[i + 2], triangle.GetVertex(2));
-
         const size_t idx = i * 3;
+        copy_vertices(vertices[idx + 0], triangle.GetVertex(0));
+        copy_vertices(vertices[idx + 1], triangle.GetVertex(1));
+        copy_vertices(vertices[idx + 2], triangle.GetVertex(2));
         indices[i].v0 = static_cast<uint32_t>(idx + 0);
         indices[i].v1 = static_cast<uint32_t>(idx + 1);
         indices[i].v2 = static_cast<uint32_t>(idx + 2);        
