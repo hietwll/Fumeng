@@ -11,6 +11,7 @@
 #include <engine/create/texture.h>
 #include <engine/create/light.h>
 #include <engine/create/embree.h>
+#include <engine/create/post_process.h>
 #include <fstream>
 #include <optional>
 #include <filesystem>
@@ -23,6 +24,7 @@ private:
     SP<const Camera> m_camera;
     SP<Renderer> m_render;
     SP<Scene> m_scene;
+    std::vector<SP<PostProcess>> m_post_process;
     std::string m_scene_root;
     std::string m_acc_type = "bvh";
 
@@ -196,6 +198,26 @@ private:
         }
     }
 
+    void ParsePostProcess()
+    {
+        auto c = GetOptional(m_config, "post_process");
+        if (c) {
+            for(auto& post : c->get()) {
+                std::string post_process_type;
+                json::LoadValue(post, "type", post_process_type);
+                if (post_process_type == "tonemapping") {
+                    ToneMappingConfig config;
+                    config.Load(post);
+                    m_post_process.push_back(CreateToneMapping(config));
+                } else if (post_process_type == "linear_to_srgb") {
+                    m_post_process.push_back(CreateLinearToSrgb());
+                } else if (post_process_type == "srgb_to_linear") {
+                    m_post_process.push_back(CreateSrgbToLinear());
+                }
+            }
+        }
+    }
+
 public:
     SceneLoader() 
     {
@@ -219,11 +241,12 @@ public:
         ParseCamera();
         ParseRender();
         ParseScene();
+        ParsePostProcess();
     }
 
-    void DrawFrame() const
+    void DrawFrame()
     {
-        m_render.get()->DrawFrame(*m_scene.get());
+        m_render.get()->DrawFrame(*m_scene.get(), m_post_process);
     }
 };
 

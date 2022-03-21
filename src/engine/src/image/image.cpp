@@ -60,6 +60,11 @@ vec3& Image::operator()(size_t w_idx, size_t h_idx)
 	return data_[h_idx * width_ + w_idx];
 }
 
+vec3& Image::operator()(size_t idx)
+{
+    return data_[idx];
+}
+
 vec3 Image::operator()(size_t w_idx, size_t h_idx) const
 {
     return data_[h_idx * width_ + w_idx];
@@ -73,7 +78,7 @@ void Image::fill(const vec3& val)
 	}
 }
 
-void Image::save_to_file(const std::string& filename, bool isHDR, bool toSRGB)
+void Image::save_to_file(const std::string& filename, bool isHDR)
 {
     hdr = isHDR;
     if (hdr) {
@@ -95,10 +100,9 @@ void Image::save_to_file(const std::string& filename, bool isHDR, bool toSRGB)
         for (size_t j = 0; j < height_; j++)
             for (size_t i = 0; i < width_; i++)
             {
-                // todo: LinearToSRGB, Clamp should be put in pixel process
-                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].x));
-                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].y));
-                raw_data[idx++] = RealToUInt8(LinearToSRGB(data_[j * width_ + i].z));
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].x);
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].y);
+                raw_data[idx++] = RealToUInt8(data_[j * width_ + i].z);
             }
 
         stbi_write_png(filename.c_str(), width_, height_, channel_num_, raw_data, width_ * channel_num_);
@@ -145,12 +149,12 @@ void Image::load_from_file(const std::string& filename, bool isHDR, bool toLinea
 
 void Image::to_srgb()
 {
-    apply_process(&LinearToSRGB);
+    apply_process(&LinearToSrgb);
 }
 
 void Image::to_linear()
 {
-    apply_process(&SRGBToLinear);
+    apply_process(&SrgbToLinear);
 }
 
 void Image::apply_process(PerElemProc func)
@@ -173,6 +177,11 @@ size_t Image::width() const
 size_t Image::height() const
 {
     return height_;
+}
+
+size_t Image::size() const
+{
+    return pixel_count_;
 }
 
 FM_ENGINE_END

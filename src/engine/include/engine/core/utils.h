@@ -117,14 +117,14 @@ inline void Clamp(vec3& color, real low = 0.0_r, real up = 1.0_r)
     color.z = Clamp(color.z, low, up);
 }
 
-inline real SRGBToLinear(real color)
+inline real SrgbToLinear(real color)
 {
     if (color <= 0.04045_r)
         return color * 1.0_r / 12.92_r;
     return std::pow((color + 0.055_r) * 1.0_r / 1.055_r, (real)2.4_r);
 }
 
-inline real LinearToSRGB(real color)
+inline real LinearToSrgb(real color)
 {
     if (color <= 0.0031308_r)
         return 12.92_r * color;
@@ -170,25 +170,6 @@ inline vec3 GetSphericalUV(const vec3& dir)
     const real v = theta * InvPI;
 
     return {u, v, theta};
-}
-
-inline real FilmicCore(real x)
-{
-    real A = 0.22_r;
-    real B = 0.30_r;
-    real C = 0.10_r;
-    real D = 0.20_r;
-    real E = 0.01_r;
-    real F = 0.30_r;
-    return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
-}
-
-inline void Filmic(vec3& pixel, real lum)
-{
-    const static real filmicWhite = FilmicCore(11.2_r);
-    pixel.x = FilmicCore(1.6_r * pixel.x * lum) / filmicWhite;
-    pixel.y = FilmicCore(1.6_r * pixel.y * lum) / filmicWhite;
-    pixel.z = FilmicCore(1.6_r * pixel.z * lum) / filmicWhite;
 }
 
 template<typename T>

@@ -41,7 +41,7 @@ public:
     {
     };
 
-    ~BSDF() = default;
+    virtual ~BSDF() = default;
 
     /*
      * Calculate the BRDF function in world space

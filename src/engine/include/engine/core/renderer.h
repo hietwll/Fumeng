@@ -10,34 +10,9 @@
 #include <engine/core/utils.h>
 #include <thread_pool.hpp>
 #include <engine/core/config.h>
+#include <engine/core/post_process.h>
 
 FM_ENGINE_BEGIN
-
-struct PixelRes {
-    vec3 color{black};
-    vec3 albedo{black};
-    vec3 normal{black};
-};
-
-struct RenderTarget {
-    Image m_image;
-    Image m_albedo;
-    Image m_normal;
-
-    void resize(size_t width, size_t height)
-    {
-        m_image.resize(width, height);
-        m_albedo.resize(width, height);
-        m_normal.resize(width, height);
-    }
-
-    void save_to_file(const std::string& prefix, bool isHDR, bool toLinear)
-    {
-        m_image.save_to_file(prefix + ".png", isHDR, toLinear);
-        m_albedo.save_to_file(prefix + "_albedo.png", false, false);
-        m_normal.save_to_file(prefix + "_normal.png", false, false);
-    }
-};
 
 class RendererConfig : public Config {
 private:
@@ -106,7 +81,7 @@ public:
         m_target.resize(m_width, m_height);
     }
 
-    void DrawFrame(Scene& scene)
+    void DrawFrame(Scene& scene, std::vector<SP<PostProcess>>& post_process)
     {
         const real res_x = real(m_width);
         const real res_y = real(m_height);
@@ -121,7 +96,7 @@ public:
             {
                 threadPool.push_task([i, j, &scene, &res_x, &res_y, this]{
                     int j_flip = m_height - 1 - j;
-                    m_target.m_image(i, j_flip) = black;
+                    m_target.m_color(i, j_flip) = black;
                     m_target.m_albedo(i, j_flip) = black;
                     m_target.m_normal(i, j_flip) = black;
                     for(int k = 0; k < m_spp; k++) {
@@ -131,16 +106,13 @@ public:
                         const real py = (j + film_sample.y) / res_y;
                         Ray camera_ray = scene.GetCamera()->SampleRay({px, py}, lens_sample);
                         const auto& target = RenderPixel(scene, camera_ray);
-                        m_target.m_image(i, j_flip) += target.color;
+                        m_target.m_color(i, j_flip) += target.color;
                         m_target.m_albedo(i, j_flip) += target.albedo;
                         m_target.m_normal(i, j_flip) += target.normal;
                     }
-                    m_target.m_image(i, j_flip) /= m_spp;
+                    m_target.m_color(i, j_flip) /= m_spp;
                     m_target.m_albedo(i, j_flip) /= m_spp;
                     m_target.m_normal(i, j_flip) /= m_spp;
-
-                    //todo: move filmic to post
-                    //Filmic(m_image(i , j_flip), 1.0_r);
                 });
             }
 
@@ -159,7 +131,12 @@ public:
             if (new_percent - percent > 0.1_r || finished) {
                 threadPool.paused = true;
                 threadPool.wait_for_tasks();
-                m_target.save_to_file(m_output, false, false);
+                if (finished) {
+                    for (auto& post : post_process) {
+                        post->Process(m_target);
+                    }
+                }
+                m_target.save_to_file(m_output, false);
                 threadPool.paused = false;
                 percent = new_percent;
             }
