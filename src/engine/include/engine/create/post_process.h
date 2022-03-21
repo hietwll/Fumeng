@@ -8,6 +8,7 @@ FM_ENGINE_BEGIN
 SP<PostProcess> CreateSrgbToLinear();
 SP<PostProcess> CreateLinearToSrgb();
 SP<PostProcess> CreateToneMapping(const ToneMappingConfig& config);
+SP<PostProcess> CreateOidnDenoise();
 
 FM_ENGINE_END
 

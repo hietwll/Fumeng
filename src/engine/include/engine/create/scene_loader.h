@@ -213,6 +213,8 @@ private:
                     m_post_process.push_back(CreateLinearToSrgb());
                 } else if (post_process_type == "srgb_to_linear") {
                     m_post_process.push_back(CreateSrgbToLinear());
+                } else if (post_process_type == "oidn_denoise") {
+                    m_post_process.push_back(CreateOidnDenoise());
                 }
             }
         }

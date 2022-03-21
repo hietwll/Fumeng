@@ -4,6 +4,7 @@ PROJECT(Fumeng)
 
 option(USE_FLOAT "Use single precision (float)." OFF)
 option(USE_EMBREE "Use embree for bvh accelerator." OFF)
+option(USE_OIDN "Use OIDN for denoising." OFF)
 
 if(USE_FLOAT)
    message("Use single precision (float).")
@@ -16,6 +17,11 @@ if(USE_EMBREE)
    FIND_PACKAGE(embree 3.0 REQUIRED)
 endif(USE_EMBREE)
 
+if(USE_OIDN)
+   message("Use OIDN for denoising.")
+   add_definitions(-DUSE_OIDN)
+   FIND_PACKAGE(OpenImageDenoise REQUIRED)
+endif(USE_OIDN)
 
 ADD_SUBDIRECTORY(thirdparty/glm)
 ADD_SUBDIRECTORY(thirdparty/spdlog)
