@@ -6,11 +6,11 @@ FM_ENGINE_BEGIN
 class SpecularReflectionBSDF : public BSDF
 {
 private:
-    vec3 color;
-    SP<Fresnel> fresnel;
+    vec3 m_basecolor;
+    SP<Fresnel> m_fresnel;
 public:
-    SpecularReflectionBSDF(const HitPoint& hit_point, const vec3& albedo, SP<Fresnel> fresnel_)
-    : color(albedo), fresnel(fresnel_), BSDF(hit_point)
+    SpecularReflectionBSDF(const HitPoint& hit_point, const vec3& basecolor, SP<Fresnel> fresnel)
+    : m_basecolor(basecolor), m_fresnel(fresnel), BSDF(hit_point)
     {
 
     }
@@ -32,28 +32,33 @@ public:
 
         real pdf = 1.0_r;
         real cos_i = CosDir(wi);
-        vec3 f = fresnel->CalFr(cos_i) * color / std::abs(cos_i);
+        vec3 f = m_fresnel->CalFr(cos_i) * m_basecolor / std::abs(cos_i);
         return {f, ShadingToWorld(wi), pdf, true};
+    };
+
+    vec3 GetAlbedo() const override
+    {
+        return m_basecolor;
     };
 };
 
 class SpecularReflection : public Material
 {
 private:
-    vec3 albedo;
-    vec3 eta_i_; // incident media
-    vec3 eta_t_; // transmitted (reflected) media
-    vec3 k_; // absorption coefficient
+    vec3 m_basecolor;
+    vec3 m_eta_i; // incident media
+    vec3 m_eta_t; // transmitted (reflected) media
+    vec3 m_k; // absorption coefficient
 public:
     SpecularReflection(const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k)
-    : albedo(color), eta_i_(eta_i), eta_t_(eta_t), k_(k)
+    : m_basecolor(color), m_eta_i(eta_i), m_eta_t(eta_t), m_k(k)
     {
     };
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        auto fresnel = MakeSP<ConductorFresnel>(eta_i_, eta_t_, k_);
-        hit_point.bsdf = MakeSP<SpecularReflectionBSDF>(hit_point, albedo, fresnel);
+        auto fresnel = MakeSP<ConductorFresnel>(m_eta_i, m_eta_t, m_k);
+        hit_point.bsdf = MakeSP<SpecularReflectionBSDF>(hit_point, m_basecolor, fresnel);
     };
 };
 

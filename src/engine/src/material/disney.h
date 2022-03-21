@@ -101,6 +101,7 @@ public:
     BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override;
     BSDFSampleInfo SampleInfoFromWoWi(const vec3& wo, const vec3& wi) const;
     vec3 RouletteSample(const vec3& wo, real roulette, const vec3& samples) const;
+    vec3 GetAlbedo() const override;
 };
 
 class BaseBXDF

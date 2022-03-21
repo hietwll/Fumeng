@@ -116,6 +116,14 @@ public:
                     xs.z * vec.x + ys.z * vec.y + zs.z * vec.z)
                 );
     };
+
+    /*
+     * Return albedo for denoising
+     */
+    virtual vec3 GetAlbedo() const
+    {
+        return black;
+    }
 };
 
 FM_ENGINE_END

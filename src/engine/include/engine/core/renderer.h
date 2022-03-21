@@ -13,6 +13,32 @@
 
 FM_ENGINE_BEGIN
 
+struct PixelRes {
+    vec3 color{black};
+    vec3 albedo{black};
+    vec3 normal{black};
+};
+
+struct RenderTarget {
+    Image m_image;
+    Image m_albedo;
+    Image m_normal;
+
+    void resize(size_t width, size_t height)
+    {
+        m_image.resize(width, height);
+        m_albedo.resize(width, height);
+        m_normal.resize(width, height);
+    }
+
+    void save_to_file(const std::string& prefix, bool isHDR, bool toLinear)
+    {
+        m_image.save_to_file(prefix + ".png", isHDR, toLinear);
+        m_albedo.save_to_file(prefix + "_albedo.png", false, false);
+        m_normal.save_to_file(prefix + "_normal.png", false, false);
+    }
+};
+
 class RendererConfig : public Config {
 private:
     static std::string root_path;
@@ -22,7 +48,7 @@ public:
     int height = 1;
     int spp = 10; // samples per pixel
     int thread_count = 8;
-    std::string output = "result.png";
+    std::string output = "result";
 
     static void SetRootPath(const std::string& path)
     {
@@ -61,13 +87,13 @@ public:
 class Renderer
 {
 protected:
-    Image m_image;
+    RenderTarget m_target;
     Sampler m_sampler;
     int m_width = 1;
     int m_height = 1;
     int m_threadCount = 8;
     int m_spp = 10;
-    std::string m_output = "result.png";
+    std::string m_output = "result";
 
 public:
     explicit Renderer(const RendererConfig& config) :
@@ -77,7 +103,7 @@ public:
     m_spp(config.spp),
     m_output(config.output)
     {
-        m_image.resize(m_width, m_height);
+        m_target.resize(m_width, m_height);
     }
 
     void DrawFrame(Scene& scene)
@@ -95,18 +121,26 @@ public:
             {
                 threadPool.push_task([i, j, &scene, &res_x, &res_y, this]{
                     int j_flip = m_height - 1 - j;
-                    m_image(i, j_flip) = black;
+                    m_target.m_image(i, j_flip) = black;
+                    m_target.m_albedo(i, j_flip) = black;
+                    m_target.m_normal(i, j_flip) = black;
                     for(int k = 0; k < m_spp; k++) {
                         const vec2 film_sample = m_sampler.Get2D();
                         const vec2 lens_sample = m_sampler.Get2D();
                         const real px = (i + film_sample.x) / res_x;
                         const real py = (j + film_sample.y) / res_y;
                         Ray camera_ray = scene.GetCamera()->SampleRay({px, py}, lens_sample);
-                        m_image(i, j_flip) += RenderPixel(scene, camera_ray);
+                        const auto& target = RenderPixel(scene, camera_ray);
+                        m_target.m_image(i, j_flip) += target.color;
+                        m_target.m_albedo(i, j_flip) += target.albedo;
+                        m_target.m_normal(i, j_flip) += target.normal;
                     }
-                    m_image(i, j_flip) /= m_spp;
+                    m_target.m_image(i, j_flip) /= m_spp;
+                    m_target.m_albedo(i, j_flip) /= m_spp;
+                    m_target.m_normal(i, j_flip) /= m_spp;
 
-                    Filmic(m_image(i , j_flip), 1.0_r);
+                    //todo: move filmic to post
+                    //Filmic(m_image(i , j_flip), 1.0_r);
                 });
             }
 
@@ -125,16 +159,16 @@ public:
             if (new_percent - percent > 0.1_r || finished) {
                 threadPool.paused = true;
                 threadPool.wait_for_tasks();
-                m_image.save_to_file(m_output, false);
+                m_target.save_to_file(m_output, false, false);
                 threadPool.paused = false;
                 percent = new_percent;
             }
         }
     }
 
-    virtual vec3 RenderPixel(Scene& scene, Ray& ray)
+    virtual PixelRes RenderPixel(Scene& scene, Ray& ray)
     {
-        return black;
+        return {};
     }
 };
 

@@ -9,36 +9,44 @@ FM_ENGINE_BEGIN
 class LambertDiffuseBSDF : public BSDF
 {
 private:
-    vec3 diffuse_color;
+    vec3 m_basecolor;
+
 public:
-    LambertDiffuseBSDF(const HitPoint& hit_point, const vec3& albedo);
+    LambertDiffuseBSDF(const HitPoint& hit_point, const vec3& basecolor);
     ~LambertDiffuseBSDF() = default;
     vec3 CalFuncLocal(const vec3& wo, const vec3& wi) const override;
+    vec3 GetAlbedo() const override;
 };
 
-LambertDiffuseBSDF::LambertDiffuseBSDF(const HitPoint& hit_point, const vec3 &albedo) : BSDF(hit_point)
+LambertDiffuseBSDF::LambertDiffuseBSDF(const HitPoint& hit_point, const vec3 &basecolor) :
+BSDF(hit_point),
+m_basecolor(basecolor)
 {
-    diffuse_color = albedo * InvPI;
 }
 
 vec3 LambertDiffuseBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
 {
-    return diffuse_color;
+    return m_basecolor * InvPI;
+}
+
+vec3 LambertDiffuseBSDF::GetAlbedo() const
+{
+    return m_basecolor;
 }
 
 class LambertDiffuse : public Material
 {
 private:
-    SP<Texture> diffuse_color;
+    SP<Texture> m_basecolor;
 public:
     explicit LambertDiffuse(const LambertDiffuseConfig& config)
     {
-        diffuse_color = CreateTexture(config.diffuse_color);
+        m_basecolor = CreateTexture(config.basecolor);
     };
 
     void CreateBSDF(HitPoint &hit_point) const override
     {
-        const vec3 sampled_color = diffuse_color->Sample(hit_point.uv);
+        const vec3 sampled_color = m_basecolor->Sample(hit_point.uv);
         hit_point.bsdf = MakeSP<LambertDiffuseBSDF>(hit_point, sampled_color);
     };
 };

@@ -26,21 +26,21 @@ public:
     {
     }
 
-    vec3 RenderPixel(Scene& scene, Ray& ray) override;
+    PixelRes RenderPixel(Scene& scene, Ray& ray) override;
     vec3 MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint);
     vec3 MisBSDF(const Scene& scene, const HitPoint& hitPoint);
     vec3 MisEnvLight(const Scene& scene, const HitPoint& hitPoint);
 };
 
-vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray)
+PixelRes PathTracer::RenderPixel(Scene& scene, Ray& ray)
 {
     // init parameters
-    vec3 color = black;
+    PixelRes res;
     vec3 beta = white;
     Ray r = ray;
 
     // main loop
-    for(int idx_m_depth = 1; idx_m_depth <= m_depth; idx_m_depth++)
+    for(int idx_depth = 1; idx_depth <= m_depth; idx_depth++)
     {
         // find closest hit point
         HitPoint hitPoint;
@@ -48,31 +48,37 @@ vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray)
 
         if(!hitting)
         {
-            // return background color
-            if (idx_m_depth == 1) {
+            // return background m_basecolor
+            if (idx_depth == 1) {
                 auto envLight = scene.GetEnvLight();
                 if (envLight != nullptr) {
-                    return envLight->GetRadiance({}, {}, {}, -ray.dir);
+                    res.color =  envLight->GetRadiance({}, {}, {}, -ray.dir);
                 }
-                return black;
+                return res;
             }
             break;
         }
 
-        // if first hit an emissive object
-        if(idx_m_depth == 1)
+        if(idx_depth == 1)
         {
+            // if first hit an emissive object
             if(hitPoint.object->IsEmissive())
             {
                 auto light = hitPoint.object->GetLight();
                 auto radiance = light->GetRadiance(hitPoint.pos, hitPoint.ng, hitPoint.uv, hitPoint.wo_r_w);
-                color += beta * radiance;
+                res.color += beta * radiance;
                 break;
             }
         }
 
         // get material's bsdf
         hitPoint.material->CreateBSDF(hitPoint);
+
+        // save albedo and normal for denoising
+        if(idx_depth == 1) {
+            res.albedo = hitPoint.bsdf->GetAlbedo();
+            res.normal = hitPoint.ng;
+        }
 
         // direct lighting
         vec3 direct = black;
@@ -84,7 +90,7 @@ vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray)
             direct += beta * MisBSDF(scene, hitPoint);
             direct += beta * MisEnvLight(scene, hitPoint);
         }
-        color += direct / static_cast<real>(m_direct);
+        res.color += direct / static_cast<real>(m_direct);
 
         // sample BSDF
         auto bsdf_sample = hitPoint.bsdf->SampleBSDF(hitPoint.wo_r_w, m_sampler.Get3D());
@@ -109,7 +115,7 @@ vec3 PathTracer::RenderPixel(Scene& scene, Ray& ray)
         }
     }
 
-    return color;
+    return res;
 }
 
 /*

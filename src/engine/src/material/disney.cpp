@@ -601,6 +601,11 @@ real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
     return total_pdf;
 }
 
+vec3 DisneyBSDF::GetAlbedo() const
+{
+    return m_basecolor;
+}
+
 class DisneyMaterial : public Material
 {
 private:
