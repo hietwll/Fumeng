@@ -35,7 +35,7 @@ private:
     void CheckEmbreeError();
 
 public:
-    TriangleEmbree(const std::string& filename);
+    TriangleEmbree(const TriangleMeshConfig& config);
     bool IsIntersect(const Ray &r) const override;
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const override;
     HitPoint Sample(real *pdf, const vec3 &sample) const override;
@@ -45,9 +45,9 @@ public:
     BBox WorldBound() const override;
 };
 
-TriangleEmbree::TriangleEmbree(const std::string& filename)
+TriangleEmbree::TriangleEmbree(const TriangleMeshConfig& config)
 {
-    m_mesh = MakeSP<TriangleMesh>(filename);
+    m_mesh = MakeSP<TriangleMesh>(config);
 
     // Loop over shapes
     for (size_t s = 0; s < m_mesh->shapes.size(); s++) {
@@ -278,9 +278,9 @@ BBox TriangleEmbree::WorldBound() const
     return m_box_world;
 }
 
-SP<Geometry> CreateEmbreeTriangle(const std::string& filename)
+SP<Geometry> CreateTriangleEmbree(const TriangleMeshConfig& config)
 {
-    return MakeSP<TriangleEmbree>(filename);
+    return MakeSP<TriangleEmbree>(config);
 }
 
 FM_ENGINE_END

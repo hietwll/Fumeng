@@ -22,15 +22,16 @@ private:
     const vidx& m_idx1;
     const vidx& m_idx2;
     vec3 m_v0, m_v1, m_v2;
+    vec3 m_n0, m_n1, m_n2;
 
     // area
     real m_area;
 
 public:
     Triangle(SP<const TriangleMesh> mesh, const vidx& idx0, const vidx& idx1, const vidx& idx2);
-    vec3 GetPos(const vidx& idx) const;
-    vec3 GetNormal(const vidx& idx) const;
-    vec2 GetUV(const vidx& idx) const;
+    vec3 GetPosFromMesh(const vidx& idx) const;
+    vec3 GetNormalFromMesh(const vidx& idx) const;
+    vec2 GetUVFromMesh(const vidx& idx) const;
     vec3 GetNormal(int idx) const;
     vec2 GetUV(int idx) const;
     bool HasNormal() const;    
@@ -47,9 +48,8 @@ public:
 class TriangleMesh
 {
 public:
-    explicit TriangleMesh(const std::string& inputfile);
-    bool m_hasNormal = true;
-    bool m_hasUV = true;
+    explicit TriangleMesh(const TriangleMeshConfig& config);
+    const Transform m_transform;
 
     // obj file
     tinyobj::attrib_t attrib;

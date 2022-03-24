@@ -7,9 +7,9 @@ FM_ENGINE_BEGIN
 
 SP<Geometry> CreateSphere(const SphereConfig& config);
 SP<Geometry> CreateSphere(real radius, const Transform& to_world);
-void CreateTriangleMesh(const std::string& filename, std::vector<SP<const Geometry>>& geometries);
+void CreateTriangleMesh(const TriangleMeshConfig& config, std::vector<SP<const Geometry>>& geometries);
 SP<Geometry> CreateRectangle(const RectangleConfig& config);
-SP<Geometry> CreateEmbreeTriangle(const std::string& filename);
+SP<Geometry> CreateTriangleEmbree(const TriangleMeshConfig& config);
 
 FM_ENGINE_END
 

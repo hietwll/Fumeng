@@ -2,6 +2,7 @@
 #include <glm/gtx/transform.hpp>
 #include <engine/core/ray.h>
 #include <engine/core/hit_point.h>
+#include <engine/core/utils.h>
 
 FM_ENGINE_BEGIN
 
@@ -15,9 +16,9 @@ Transform::Transform(const mat4 &mat, const mat4 &inv_mat) : matrix_(mat), inv_(
 
 Transform::Transform(const vec3 &translation, const vec3 &rotation, const vec3 &scale)
 {
-    mat4 rot = glm::rotate(rotation.z, vec3(0.0_r, 0.0_r, 1.0_r)) *
-            glm::rotate(rotation.y, vec3(0.0_r, 1.0_r, 0.0_r)) *
-            glm::rotate(rotation.x, vec3(1.0_r, 0.0_r, 0.0_r));
+    mat4 rot = glm::rotate(DegToRad(rotation.z), vec3(0.0_r, 0.0_r, 1.0_r)) *
+            glm::rotate(DegToRad(rotation.y), vec3(0.0_r, 1.0_r, 0.0_r)) *
+            glm::rotate(DegToRad(rotation.x), vec3(1.0_r, 0.0_r, 0.0_r));
     matrix_ = glm::translate(mat4(1.0_r), translation) * rot *
             glm::scale(mat4(1.0_r), scale);
     inv_ = glm::inverse(matrix_);

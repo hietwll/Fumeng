@@ -94,49 +94,56 @@ namespace triangle_func {
     }
 }
 
-TriangleMesh::TriangleMesh(const std::string& inputfile)
+TriangleMesh::TriangleMesh(const TriangleMeshConfig& config) :
+m_transform(Transform(config.translation, config.rotation, config.scale))
 {
     std::string warn;
     std::string err;
-    bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, inputfile.c_str());
+    bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, config.path.c_str());
 
     if (!ret)
     {
-        spdlog::error("Loading model failed: {}.", inputfile);
+        spdlog::error("Loading model failed: {}.", config.path);
         return;
     }
 }
 
 
 Triangle::Triangle(SP<const TriangleMesh> mesh, const vidx& idx0, const vidx& idx1, const vidx& idx2)
-: Geometry(Transform()),
+: Geometry(mesh->m_transform),
   m_mesh(mesh),
   m_idx0(idx0),
   m_idx1(idx1),
   m_idx2(idx2)
 {
-    m_v0 = GetPos(m_idx0);
-    m_v1 = GetPos(m_idx1);
-    m_v2 = GetPos(m_idx2);
+    //todo: triangle should host a reference of the shared transform from the mesh
+    m_v0 = object_to_world.ApplyToPoint(GetPosFromMesh(m_idx0));
+    m_v1 = object_to_world.ApplyToPoint(GetPosFromMesh(m_idx1));
+    m_v2 = object_to_world.ApplyToPoint(GetPosFromMesh(m_idx2));
+    if (HasNormal()) {
+        m_n0 = object_to_world.ApplyToNormal(GetNormalFromMesh(m_idx0));
+        m_n1 = object_to_world.ApplyToNormal(GetNormalFromMesh(m_idx1));
+        m_n2 = object_to_world.ApplyToNormal(GetNormalFromMesh(m_idx2));
+    }
     const auto e0 = m_v1 - m_v0;
     const auto e1 = m_v2 - m_v0;
     const auto pg = glm::cross(e0 , e1);
     m_area = glm::length(pg) * 0.5_r;
 }
     
-vec3 Triangle::GetPos(const vidx& idx) const
+vec3 Triangle::GetPosFromMesh(const vidx& idx) const
 {
     size_t bg = 3 * idx.vertex_index;
     return {m_mesh->attrib.vertices[bg], m_mesh->attrib.vertices[bg + 1], m_mesh->attrib.vertices[bg + 2]};
 }
     
-vec3 Triangle::GetNormal(const vidx& idx) const
+vec3 Triangle::GetNormalFromMesh(const vidx& idx) const
 {
     size_t bg = 3 * idx.normal_index;
     return {m_mesh->attrib.normals[bg], m_mesh->attrib.normals[bg + 1], m_mesh->attrib.normals[bg + 2]};
 }
     
-vec2 Triangle::GetUV(const vidx& idx) const
+vec2 Triangle::GetUVFromMesh(const vidx& idx) const
 {
     if (idx.texcoord_index >= 0) {
         size_t bg = 2 * idx.texcoord_index;
@@ -149,13 +156,14 @@ vec2 Triangle::GetUV(const vidx& idx) const
 vec3 Triangle::GetNormal(int idx) const
 {
     assert(idx >= 0 && idx <=2);
+    assert(HasNormal());
 
     if (idx == 0) {
-        return GetNormal(m_idx0);
+        return m_n0;
     } else if (idx == 1) {
-        return GetNormal(m_idx1);
+        return m_n1;
     } else {
-        return GetNormal(m_idx2);
+        return m_n2;
     }
 }
 
@@ -164,11 +172,11 @@ vec2 Triangle::GetUV(int idx) const
     assert(idx >= 0 && idx <=2);
 
     if (idx == 0) {
-        return GetUV(m_idx0);
+        return GetUVFromMesh(m_idx0);
     } else if (idx == 1) {
-        return GetUV(m_idx1);
+        return GetUVFromMesh(m_idx1);
     } else {
-        return GetUV(m_idx2);
+        return GetUVFromMesh(m_idx2);
     }
 }
 
@@ -216,19 +224,17 @@ bool Triangle::GetIntersect(const Ray &r, HitPoint *hit_point) const
     hit_point->pos = r(t);
     hit_point->wo_r_w = -r.dir;
 
-    const vec2 uv = bc.x * GetUV(m_idx0) +
-                    bc.y * GetUV(m_idx1) +
-                    bc.z * GetUV(m_idx2);
+    const vec2 uv = bc.x * GetUVFromMesh(m_idx0) +
+                    bc.y * GetUVFromMesh(m_idx1) +
+                    bc.z * GetUVFromMesh(m_idx2);
 
     hit_point->uv.x = uv.x;
     hit_point->uv.y = uv.y;
 
-    if (m_idx0.normal_index >= 0 &&
-        m_idx1.normal_index >= 0 &&
-        m_idx2.normal_index >= 0) {
-        hit_point->ng = bc.x * GetNormal(m_idx0) +
-                        bc.y * GetNormal(m_idx1) +
-                        bc.z * GetNormal(m_idx2);
+    if (HasNormal()) {
+        hit_point->ng = bc.x * m_n0 +
+                        bc.y * m_n1 +
+                        bc.z * m_n2;
     } else {
         hit_point->ng = glm::normalize(glm::cross(m_v0 - m_v2, m_v1 - m_v2));
     }
@@ -250,20 +256,19 @@ HitPoint Triangle::Sample(real *pdf, const vec3 &sample) const
     HitPoint hitPoint;
     hitPoint.pos = b0 * m_v0 + b1 * m_v1 + b2 * m_v2;
 
-    const vec2 uv = b0 * GetUV(m_idx0) +
-                    b1 * GetUV(m_idx1) +
-                    b2 * GetUV(m_idx2);
+    const vec2 uv = b0 * GetUVFromMesh(m_idx0) +
+                    b1 * GetUVFromMesh(m_idx1) +
+                    b2 * GetUVFromMesh(m_idx2);
 
     hitPoint.uv.x = uv.x;
     hitPoint.uv.y = uv.y;
 
-    if (m_idx0.normal_index >= 0 &&
-        m_idx1.normal_index >= 0 &&
-        m_idx2.normal_index >= 0) {
-        hitPoint.ng = b0 * GetNormal(m_idx0) +
-                      b1 * GetNormal(m_idx1) +
-                      b2 * GetNormal(m_idx2);
+    if (HasNormal()) {
+        hitPoint.ng = b0 * m_n0 +
+                      b1 * m_n1 +
+                      b2 * m_n2;
     } else {
+        // simple uniform normal
         hitPoint.ng = glm::normalize(glm::cross(m_v0 - m_v2, m_v1 - m_v2));
     }
 
@@ -302,9 +307,9 @@ BBox Triangle::WorldBound() const
     return box;
 }
 
-void CreateTriangleMesh(const std::string& filename, std::vector<SP<const Geometry>>& geometries)
+void CreateTriangleMesh(const TriangleMeshConfig& config, std::vector<SP<const Geometry>>& geometries)
 {
-    auto mesh = MakeSP<TriangleMesh>(filename);
+    auto mesh = MakeSP<TriangleMesh>(config);
 
     // Loop over shapes
     for (size_t s = 0; s < mesh->shapes.size(); s++) {

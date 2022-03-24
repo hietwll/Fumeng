@@ -39,6 +39,23 @@ public:
     }    
 };
 
+class TriangleMeshConfig : public Config
+{
+public:
+    std::string path;
+    vec3 translation {black};
+    vec3 rotation {black};
+    vec3 scale {white};
+
+    void Load(const nlohmann::json &j) override
+    {
+        FM_LOAD_IMPL(j, path);
+        FM_LOAD_IMPL(j, translation);
+        FM_LOAD_IMPL(j, rotation);
+        FM_LOAD_IMPL(j, scale);
+    }
+};
+
 class Geometry
 {
 protected:

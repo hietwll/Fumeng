@@ -140,15 +140,17 @@ private:
             std::string shape_type;
             json::LoadValue(shape_config->get(), "type", shape_type);
             if (shape_type == "triangle_mesh") {
-                std::string path;
-                json::LoadValue(shape_config->get(), "path", path);
 #ifdef USE_EMBREE
                 if (m_acc_type == "embree") {
-                    geometries.push_back(CreateEmbreeTriangle(m_scene_root + path));
+                    TriangleMeshConfig config;
+                    config.Load(shape_config->get());
+                    geometries.push_back(CreateTriangleEmbree(config));
                 } else
 #endif
                 {
-                    CreateTriangleMesh(m_scene_root + path, geometries);
+                    TriangleMeshConfig config;
+                    config.Load(shape_config->get());
+                    CreateTriangleMesh(config, geometries);
                 } 
             } else if (shape_type == "sphere") {
                 SphereConfig config;
