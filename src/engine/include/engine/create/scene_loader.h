@@ -15,6 +15,7 @@
 #include <fstream>
 #include <optional>
 #include <filesystem>
+#include <unordered_map>
 
 FM_ENGINE_BEGIN
 
@@ -25,6 +26,8 @@ private:
     SP<Renderer> m_render;
     SP<Scene> m_scene;
     std::vector<SP<PostProcess>> m_post_process;
+    std::unordered_map<std::string, SP<const Material>> m_materials;
+    std::vector<SP<const RenderObject>> m_render_objects;
     std::string m_scene_root;
     std::string m_acc_type = "bvh";
 
@@ -93,23 +96,35 @@ private:
                 json::LoadValue(acc_config->get(), "type", m_acc_type);
             }
 
+            // register root path for texture loading
+            ImageTextureConfig::SetRootPath(m_scene_root);
+
+            // create materials
+            auto material_configs = GetOptional(c->get(), "materials");
+            if (material_configs) {
+                for(auto& config : material_configs->get()) {
+                    ParseMaterial(config);
+                }
+            }
+            // add a default material
+            m_materials.emplace("default_material", CreateLambertDiffuse(LambertDiffuseConfig()));
+
             // create render objects
             auto obj_configs = GetOptional(c->get(), "render_objects");
-            std::vector<SP<const RenderObject>> render_objects;
             if (obj_configs) {
                 for(auto& config : obj_configs->get()) {
-                    ParseRenderObjects(config, render_objects);
+                    ParseRenderObject(config);
                 }
             }
 
             if (m_acc_type == "naive") {
-                aggregate = CreateSimpleAggregate(render_objects);
+                aggregate = CreateSimpleAggregate(m_render_objects);
 #ifdef USE_EMBREE
             } else if (m_acc_type == "embree") {
-                aggregate = CreateEmbreeAggregate(render_objects);
+                aggregate = CreateEmbreeAggregate(m_render_objects);
 #endif                
             } else {
-                aggregate = CreateBVHAggregate(render_objects);
+                aggregate = CreateBVHAggregate(m_render_objects);
             }
 
             // create scene
@@ -131,7 +146,29 @@ private:
         }
     }
 
-    void ParseRenderObjects(const nlohmann::json &j, std::vector<SP<const RenderObject>>& objs)
+    void ParseMaterial(const nlohmann::json &j)
+    {
+        std::string material_type;
+        std::string material_name;
+        SP<Material> material;
+        json::LoadValue(j, "type", material_type);
+        json::LoadValue(j, "name", material_name);
+        if (material_type == "lambert_diffuse") {
+            LambertDiffuseConfig config;
+            config.Load(j);
+            material = CreateLambertDiffuse(config);
+        } else if (material_type == "disney") {
+            DisneyConfig config;
+            config.Load(j);
+            material = CreateDisneyMaterial(config);
+        } else {
+            spdlog::error("Shape type not supported: {}.", material_type);
+            throw std::runtime_error("Shape type not supported.");
+        }
+        m_materials.emplace(material_name, material);
+    }
+
+    void ParseRenderObject(const nlohmann::json &j)
     {
         // create shape
         std::vector<SP<const Geometry>> geometries;
@@ -166,37 +203,21 @@ private:
             }
         }
 
-        // register root path for texture loading
-        ImageTextureConfig::SetRootPath(m_scene_root);
-
-        // create material
-        auto material_config = GetOptional(j, "material");
-        SP<const Material> material;
-        if (material_config) {
-            std::string material_type;
-            json::LoadValue(material_config->get(), "type", material_type);
-            if (material_type == "lambert_diffuse") {
-                LambertDiffuseConfig config;
-                config.Load(material_config->get());
-                material = CreateLambertDiffuse(config);
-            } else if (material_type == "disney") {
-                DisneyConfig config;
-                config.Load(material_config->get());
-                material = CreateDisneyMaterial(config);
-            } else {
-                spdlog::error("Shape type not supported: {}.", material_type);
-                throw std::runtime_error("Shape type not supported.");
-            }
-        }
-
         // parse emittance
         vec3 emittance = black;
-        json::LoadValue(j, "emittance", emittance);                        
+        json::LoadValue(j, "emittance", emittance);
+
+        std::string material_name = "default_material";
+        json::LoadValue(j, "material", material_name);
 
         // create render objects
         for (auto& geom : geometries) {
-            // todo: add emissive parameter in json
-            objs.push_back(CreateRenderObject(geom, material, emittance));
+            if(m_materials.find(material_name) != m_materials.end()) {
+                m_render_objects.push_back(CreateRenderObject(geom, m_materials[material_name], emittance));
+            } else {
+                spdlog::warn("Fail to find material {}, use default lambert.", material_name);
+                m_render_objects.push_back(CreateRenderObject(geom, m_materials["default_material"], emittance));
+            }
         }
     }
 

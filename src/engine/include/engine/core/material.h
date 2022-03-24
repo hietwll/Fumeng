@@ -9,7 +9,7 @@ FM_ENGINE_BEGIN
 
 class LambertDiffuseConfig : public Config {
 public:
-    TextureDesc basecolor;
+    TextureDesc basecolor {white};
 
     void Load(const nlohmann::json &j) override
     {
