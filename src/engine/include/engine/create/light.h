@@ -5,7 +5,7 @@
 
 FM_ENGINE_BEGIN
 
-SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture_);
+SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation);
 
 FM_ENGINE_END
 

@@ -131,15 +131,20 @@ private:
             m_scene = CreateSimpleScene(m_camera, aggregate);
 
             // create env
-            std::string env_path;
-            json::LoadValue(c->get(), "env", env_path);
-            if (!env_path.empty()) {
-                TextureDesc desc;
-                desc.type = TextureDesc::TextureType::IMAGE;
-                desc.config = MakeUP<ImageTextureConfig>(m_scene_root + env_path);
-                SP<Texture> sky = CreateTexture(desc);
-                SP<EnvLight> env_light = CreateEnvLight(sky);
-                m_scene->SetEnvLight(env_light);
+            auto env_config = GetOptional(c->get(), "env");
+            if (env_config) {
+                std::string env_path;
+                json::LoadValue(env_config->get(), "path", env_path);
+                if (!env_path.empty()) {
+                    TextureDesc desc;
+                    desc.type = TextureDesc::TextureType::IMAGE;
+                    desc.config = MakeUP<ImageTextureConfig>(m_scene_root + env_path);
+                    SP<Texture> sky = CreateTexture(desc);
+                    vec3 rotation {black};
+                    json::LoadValue(env_config->get(), "rotation", rotation);
+                    SP<EnvLight> env_light = CreateEnvLight(sky, rotation);
+                    m_scene->SetEnvLight(env_light);
+                }
             }
         } else  {
             throw std::runtime_error("Scene is not specified.");

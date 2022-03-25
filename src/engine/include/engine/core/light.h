@@ -91,17 +91,17 @@ class EnvImportanceSampler;
 class EnvLight : public Light
 {
 private:
-    SP<const Texture> texture;
-    Transform light_to_world;
-    SP<const EnvImportanceSampler> sampler;
-    vec3 mean_radiance; // power
+    SP<const Texture> m_texture;
+    Transform light_to_world, world_to_light;
+    SP<const EnvImportanceSampler> m_sampler;
+    vec3 m_mean_radiance; // power
     // todo: calculate world_radius by bounding box size
-    real world_radius = 1.0e6_r;
+    real m_world_radius = 1.0e6_r;
 
     void CalMeanRadiance();
 
 public:
-    EnvLight(const SP<const Texture>& texture_);
+    EnvLight(const SP<const Texture>& texture, const vec3& rotation);
     LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
     vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override;
     real Pdf(const vec3& dir) const;
