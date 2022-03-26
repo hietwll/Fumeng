@@ -97,11 +97,12 @@ private:
     vec3 m_mean_radiance; // power
     // todo: calculate world_radius by bounding box size
     real m_world_radius = 1.0e6_r;
+    real m_factor;
 
     void CalMeanRadiance();
 
 public:
-    EnvLight(const SP<const Texture>& texture, const vec3& rotation);
+    EnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor);
     LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
     vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override;
     real Pdf(const vec3& dir) const;

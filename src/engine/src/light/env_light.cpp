@@ -20,13 +20,14 @@ void EnvLight::CalMeanRadiance()
 
         for (size_t i = 0; i < width; i++) {
             const real u0 = real(i) / width;
-            m_mean_radiance += PI * area * m_texture->Sample({u0 + 0.5_r * du, v0 + 0.5_r * dv});
+            m_mean_radiance += m_factor * PI * area * m_texture->Sample({u0 + 0.5_r * du, v0 + 0.5_r * dv});
         }
     }
 }
 
-EnvLight::EnvLight(const SP<const Texture>& texture, const vec3& rotation) :
+EnvLight::EnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor) :
 light_to_world(Transform(black, rotation, white)),
+m_factor(factor),
 world_to_light(light_to_world.InvTransform())
 {
     m_texture = texture;
@@ -48,7 +49,7 @@ LightSampleInfo EnvLight::Sample(const HitPoint& hit_point, const vec3& sample) 
 vec3 EnvLight::GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const
 {
     const auto sphere_uv = GetSphericalUV(world_to_light.ApplyToVec3(-light_to_shd));
-    return m_texture->Sample({sphere_uv.x, sphere_uv.y});
+    return m_factor * m_texture->Sample({sphere_uv.x, sphere_uv.y});
 }
 
 /*
@@ -69,9 +70,9 @@ real EnvLight::Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light
     return m_sampler->Pdf(world_to_light.ApplyToVec3(-light_to_shd));
 }
 
-SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation)
+SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor)
 {
-    return MakeSP<EnvLight>(texture, rotation);
+    return MakeSP<EnvLight>(texture, rotation, factor);
 }
 
 FM_ENGINE_END

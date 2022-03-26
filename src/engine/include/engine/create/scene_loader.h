@@ -142,7 +142,9 @@ private:
                     SP<Texture> sky = CreateTexture(desc);
                     vec3 rotation {black};
                     json::LoadValue(env_config->get(), "rotation", rotation);
-                    SP<EnvLight> env_light = CreateEnvLight(sky, rotation);
+                    real factor {1.0_r};
+                    json::LoadValue(env_config->get(), "factor", factor);
+                    SP<EnvLight> env_light = CreateEnvLight(sky, rotation, factor);
                     m_scene->SetEnvLight(env_light);
                 }
             }
