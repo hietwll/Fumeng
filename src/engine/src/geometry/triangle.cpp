@@ -94,6 +94,8 @@ namespace triangle_func {
     }
 }
 
+std::string TriangleMeshConfig::root_path = {};
+
 TriangleMesh::TriangleMesh(const TriangleMeshConfig& config) :
 m_transform(Transform(config.translation, config.rotation, config.scale))
 {

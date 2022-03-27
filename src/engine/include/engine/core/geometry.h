@@ -42,10 +42,16 @@ public:
 class TriangleMeshConfig : public Config
 {
 public:
+    static std::string root_path;
     std::string path;
     vec3 translation {black};
     vec3 rotation {black};
     vec3 scale {white};
+
+    static void SetRootPath(const std::string& path)
+    {
+        root_path = path;
+    }
 
     void Load(const nlohmann::json &j) override
     {
@@ -53,6 +59,7 @@ public:
         FM_LOAD_IMPL(j, translation);
         FM_LOAD_IMPL(j, rotation);
         FM_LOAD_IMPL(j, scale);
+        path = root_path + path;
     }
 };
 

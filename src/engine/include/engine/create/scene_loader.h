@@ -109,6 +109,9 @@ private:
             // add a default material
             m_materials.emplace("default_material", CreateLambertDiffuse(LambertDiffuseConfig()));
 
+            // register root path for obj loading
+            TriangleMeshConfig::SetRootPath(m_scene_root);
+
             // create render objects
             auto obj_configs = GetOptional(c->get(), "render_objects");
             if (obj_configs) {
@@ -144,8 +147,7 @@ private:
                     json::LoadValue(env_config->get(), "rotation", rotation);
                     real factor {1.0_r};
                     json::LoadValue(env_config->get(), "factor", factor);
-                    SP<EnvLight> env_light = CreateEnvLight(sky, rotation, factor);
-                    m_scene->SetEnvLight(env_light);
+                    m_scene->AddLight( CreateEnvLight(sky, rotation, factor));
                 }
             }
         } else  {

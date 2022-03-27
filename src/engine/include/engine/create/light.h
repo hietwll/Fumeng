@@ -5,7 +5,9 @@
 
 FM_ENGINE_BEGIN
 
-SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor);
+SP<Light> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor);
+
+SP<Light> CreateDirectionalLight(const vec3& radiance, const vec3& direction);
 
 FM_ENGINE_END
 

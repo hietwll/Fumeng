@@ -30,4 +30,8 @@ real DirectionalLight::Pdf(const vec3& shd_pos, const vec3& light_pos, const vec
     return 0.0_r;
 }
 
+SP<Light> CreateDirectionalLight(const vec3& radiance, const vec3& direction)
+{
+    return MakeSP<DirectionalLight>(radiance, direction);
+}
 FM_ENGINE_END

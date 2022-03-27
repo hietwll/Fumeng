@@ -70,7 +70,7 @@ real EnvLight::Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light
     return m_sampler->Pdf(world_to_light.ApplyToVec3(-light_to_shd));
 }
 
-SP<EnvLight> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor)
+SP<Light> CreateEnvLight(const SP<const Texture>& texture, const vec3& rotation, real factor)
 {
     return MakeSP<EnvLight>(texture, rotation, factor);
 }

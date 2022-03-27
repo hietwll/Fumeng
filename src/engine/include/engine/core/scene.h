@@ -5,6 +5,7 @@
 #include <engine/core/aggregate.h>
 #include <engine/core/light.h>
 #include <vector>
+#include <typeinfo>
 
 
 FM_ENGINE_BEGIN
@@ -14,7 +15,6 @@ class Scene
 protected:
     SP<const Camera> camera;
     SP<const Aggregate> aggregate;
-    SP<EnvLight> envLight;
     std::vector<SP<const Light>> lights;
 
 public:
@@ -43,15 +43,20 @@ public:
         return res;
     }
 
-    void SetEnvLight(SP<EnvLight> env_light)
+    void AddLight(SP<const Light> light)
     {
-        envLight = env_light;
-//        lights.push_back(env_light);
+        lights.push_back(light);
     }
 
-    EnvLight* GetEnvLight() const
+    const EnvLight* GetEnvLight() const
     {
-        return envLight.get();
+        // curently only support one env light
+        for(auto & light : lights) {
+            if(typeid(*light.get()) == typeid(const EnvLight)) {
+                return dynamic_cast<const EnvLight*>(light.get());
+            }
+        }
+        return nullptr;
     }
 
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const
