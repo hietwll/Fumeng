@@ -99,7 +99,7 @@ private:
             // register root path for texture loading
             ImageTextureConfig::SetRootPath(m_scene_root);
 
-            // create materials
+            // parse materials
             auto material_configs = GetOptional(c->get(), "materials");
             if (material_configs) {
                 for(auto& config : material_configs->get()) {
@@ -112,7 +112,7 @@ private:
             // register root path for obj loading
             TriangleMeshConfig::SetRootPath(m_scene_root);
 
-            // create render objects
+            // parse render objects
             auto obj_configs = GetOptional(c->get(), "render_objects");
             if (obj_configs) {
                 for(auto& config : obj_configs->get()) {
@@ -133,25 +133,44 @@ private:
             // create scene
             m_scene = CreateSimpleScene(m_camera, aggregate);
 
-            // create env
-            auto env_config = GetOptional(c->get(), "env");
-            if (env_config) {
-                std::string env_path;
-                json::LoadValue(env_config->get(), "path", env_path);
-                if (!env_path.empty()) {
-                    TextureDesc desc;
-                    desc.type = TextureDesc::TextureType::IMAGE;
-                    desc.config = MakeUP<ImageTextureConfig>(m_scene_root + env_path);
-                    SP<Texture> sky = CreateTexture(desc);
-                    vec3 rotation {black};
-                    json::LoadValue(env_config->get(), "rotation", rotation);
-                    real factor {1.0_r};
-                    json::LoadValue(env_config->get(), "factor", factor);
-                    m_scene->AddLight( CreateEnvLight(sky, rotation, factor));
+            // parse lights
+            auto light_configs = GetOptional(c->get(), "lights");
+            if (light_configs) {
+                for(auto& config : light_configs->get()) {
+                    ParseLights(config);
                 }
             }
         } else  {
             throw std::runtime_error("Scene is not specified.");
+        }
+    }
+
+    void ParseLights(const nlohmann::json &j)
+    {
+        std::string light_type;
+        json::LoadValue(j, "type", light_type);
+        if (light_type == "env") {
+            std::string env_path;
+            json::LoadValue(j, "path", env_path);
+            if (!env_path.empty()) {
+                TextureDesc desc;
+                desc.type = TextureDesc::TextureType::IMAGE;
+                desc.config = MakeUP<ImageTextureConfig>(m_scene_root + env_path);
+                SP<Texture> sky = CreateTexture(desc);
+                vec3 rotation {black};
+                real factor {1.0_r};
+                json::LoadValue(j, "rotation", rotation);
+                json::LoadValue(j, "factor", factor);
+                m_scene->AddLight( CreateEnvLight(sky, rotation, factor));
+            }
+        } else if (light_type == "directional") {
+            vec3 radiance {black};
+            vec3 direction {red};
+            json::LoadValue(j, "radiance", radiance);
+            json::LoadValue(j, "direction", direction);
+            m_scene->AddLight(CreateDirectionalLight(radiance, glm::normalize(direction)));
+        } else {
+            spdlog::warn("Light type not supported: {}.", light_type);
         }
     }
 
@@ -171,8 +190,7 @@ private:
             config.Load(j);
             material = CreateDisneyMaterial(config);
         } else {
-            spdlog::error("Shape type not supported: {}.", material_type);
-            throw std::runtime_error("Shape type not supported.");
+            spdlog::warn("Material type not supported: {}.", material_type);
         }
         m_materials.emplace(material_name, material);
     }
@@ -207,8 +225,7 @@ private:
                 config.Load(shape_config->get());
                 geometries.push_back(CreateRectangle(config));
             } else {
-                spdlog::error("Shape type not supported: {}.", shape_type);
-                throw std::runtime_error("Shape type not supported.");
+                spdlog::warn("Shape type not supported: {}.", shape_type);
             }
         }
 
@@ -247,6 +264,8 @@ private:
                     m_post_process.push_back(CreateSrgbToLinear());
                 } else if (post_process_type == "oidn_denoise") {
                     m_post_process.push_back(CreateOidnDenoise());
+                } else {
+                    spdlog::warn("Post process type not supported: {}.", post_process_type);
                 }
             }
         }

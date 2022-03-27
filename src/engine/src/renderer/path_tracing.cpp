@@ -29,7 +29,6 @@ public:
     PixelRes RenderPixel(Scene& scene, Ray& ray) override;
     vec3 MisLight(const Scene& scene, const Light* light, const HitPoint& hitPoint);
     vec3 MisBSDF(const Scene& scene, const HitPoint& hitPoint);
-    vec3 MisEnvLight(const Scene& scene, const HitPoint& hitPoint);
 };
 
 PixelRes PathTracer::RenderPixel(Scene& scene, Ray& ray)
@@ -88,7 +87,6 @@ PixelRes PathTracer::RenderPixel(Scene& scene, Ray& ray)
                 direct += beta * MisLight(scene, light, hitPoint);
             }
             direct += beta * MisBSDF(scene, hitPoint);
-            direct += beta * MisEnvLight(scene, hitPoint);
         }
         res.color += direct / static_cast<real>(m_direct);
 
@@ -148,49 +146,17 @@ vec3 PathTracer::MisLight(const Scene& scene, const Light* light, const HitPoint
         return black;
     }
 
+    auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
+
+    // just sample light, delta light will not be hitted by sampling bsdf, no need extra handling there
+    if (light->IsDelta()) {
+        return f / light_sample.pdf;
+    }
+
     // get PowerHeuristic weight for light
     auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
-    auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
-    return f / light_sample.pdf * weight;
-}
 
-/*
- * Multiple Importance Sampling for EnvLight
- */
-vec3 PathTracer::MisEnvLight(const Scene& scene, const HitPoint& hitPoint)
-{
-    auto envLight = scene.GetEnvLight();
-    if (envLight == nullptr) {
-        return black;
-    }
-
-    // sample the light
-    auto light_sample = envLight->Sample(hitPoint, m_sampler.Get3D());
-
-    if (light_sample.pdf < eps_pdf || glm::length(light_sample.radiance) < eps_pdf) {
-        return black;
-    }
-
-    // test occlusion
-    const Ray shadow_ray(light_sample.ref_pos, light_sample.wi_w, eps, light_sample.dist - eps);
-    if (scene.IsIntersect(shadow_ray)) {
-        return black;
-    }
-
-    // calculate bsdf
-    auto bsdf_f = hitPoint.bsdf->CalFunc(hitPoint.wo_r_w, light_sample.wi_w);
-    if (glm::length(bsdf_f) < eps_pdf) {
-        return black;
-    }
-
-    // calculate pdf of bsdf
-    auto bsdf_pdf = hitPoint.bsdf->Pdf(hitPoint.wo_r_w, light_sample.wi_w);
-    if (bsdf_pdf < eps_pdf) {
-        return black;
-    }
-
-    auto f = bsdf_f * light_sample.radiance * AbsDot(light_sample.wi_w, hitPoint.ng);
-    auto weight = PowerHeuristic(light_sample.pdf, bsdf_pdf);
+    // use mis
     return f / light_sample.pdf * weight;
 }
 
