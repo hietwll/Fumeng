@@ -32,23 +32,22 @@ public:
     virtual ~Light() = default;
 
     /**
-     * sample light wi at ref
+     * Sample light wi at ref
      */
     virtual LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const = 0;
 
     /**
-     * is this a delta light (delta position or delta direction)
+     * Is this a delta light (delta position or delta direction)
      */
     virtual bool IsDelta() const = 0;
 
     /**
-     * get the pdf of given position
+     * Get the pdf of given shading position, returned pdf is w.r.t. solid angle
      */
     virtual real Pdf(const vec3& ref_pos, const vec3& pos, const vec3& nor, const vec3& light_to_out) const = 0;
 
     /**
-     * approximation of power. some algorithms may devote additional computational resources to lights making
-     * largest contribution
+     * Approximation of power. some algorithms may devote additional computational resources to lights making large contribution
      */
      virtual vec3 GetPower() const
      {
@@ -56,7 +55,7 @@ public:
      };
 
      /**
-      * get the radiance of the light
+      * Get the radiance of the light
       *
       * @param pos position on the light source
       * @param nor normal of the light source at position
@@ -70,11 +69,11 @@ public:
 class AreaLight : public Light
 {
 private:
-    const Geometry* geometry = nullptr;
-    vec3 radiance;
+    const Geometry* m_geometry = nullptr;
+    vec3 m_radiance;
 
 public:
-    AreaLight(const Geometry* geometry_, const vec3& radiance_);
+    AreaLight(const Geometry* geometry, const vec3& radiance);
 
     LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
 
@@ -85,6 +84,25 @@ public:
     real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
 };
 
+class DirectionalLight : public Light
+{
+private:
+    vec3 m_radiance;
+    vec3 m_direction; // light to shading point in world space
+    // todo: calculate world_radius by bounding box size
+    real m_world_radius = 1.0e6_r;
+
+public:
+    DirectionalLight(const vec3& radiance, const vec3& direction);
+
+    LightSampleInfo Sample(const HitPoint& hit_point, const vec3& sample) const override;
+
+    bool IsDelta() const override;
+
+    vec3 GetRadiance(const vec3& pos, const vec3& nor, const vec2& uv, const vec3& light_to_shd) const override;
+
+    real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
+};
 
 class EnvImportanceSampler;
 
@@ -109,10 +127,6 @@ public:
     bool IsDelta() const override;
     real Pdf(const vec3& shd_pos, const vec3& light_pos, const vec3& light_nor, const vec3& light_to_shd) const override;
 };
-
-
-
-
 
 FM_ENGINE_END
 

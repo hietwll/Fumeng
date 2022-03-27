@@ -16,59 +16,59 @@ FM_ENGINE_BEGIN
 class RenderObject
 {
 private:
-    SP<const Geometry> geometry;
-    SP<const Material> material;
-    SP<const AreaLight> area_light;
-    bool emissive = false;
+    SP<const Geometry> m_geometry;
+    SP<const Material> m_material;
+    SP<const AreaLight> m_area_light;
+    bool m_emissive = false;
 
 public:
-    RenderObject(SP<const Geometry>& geometry_, SP<const Material>& material_, vec3 emittance = {0.0_r, 0.0_r, 0.0_r})
+    RenderObject(SP<const Geometry>& geometry, SP<const Material>& material, vec3 emittance = {0.0_r, 0.0_r, 0.0_r})
     {
-        geometry = geometry_;
-        material = material_;
+        m_geometry = geometry;
+        m_material = material;
         if(!IsBlack(emittance)) {
-            area_light = MakeSP<AreaLight>(geometry.get(), emittance);
-            emissive = true;
+            m_area_light = MakeSP<AreaLight>(m_geometry.get(), emittance);
+            m_emissive = true;
         }
     }
 
     bool IsIntersect(const Ray &r) const
     {
-        return geometry->IsIntersect(r);
+        return m_geometry->IsIntersect(r);
     }
 
     bool IsEmissive() const
     {
-        return emissive;
+        return m_emissive;
     }
 
     bool GetIntersect(const Ray &r, HitPoint *hit_point) const
     {
-        if(!geometry->GetIntersect(r, hit_point)) {
+        if(!m_geometry->GetIntersect(r, hit_point)) {
             return false;
         }
 
         hit_point->object = this;
-        hit_point->material = material.get();
+        hit_point->material = m_material.get();
 
         return true;
     }
 
     void ConstructAreaLight(std::vector<SP<const Light>>& lights) const
     {
-        if(emissive) {
-            lights.push_back(area_light);
+        if(m_emissive) {
+            lights.push_back(m_area_light);
         }
     }
 
     const AreaLight* GetLight() const
     {
-        return area_light.get();
+        return m_area_light.get();
     }
 
     BBox WorldBound() const noexcept
     {
-        return geometry->WorldBound();
+        return m_geometry->WorldBound();
     }
 };
 

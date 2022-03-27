@@ -105,9 +105,10 @@ public:
     /**
      * For sampling light, a more efficient way is to only sample point that is visible
      * to the point to be shaded (i.e. ref).
+     *
      * It doesn't make sense to calculate the pdf w.r.t solid angle here, because that
      * breaks the uniformity. Here we still return the pdf w.r.t surface area and get
-     * the pdf w.r.t solid angle in MIS.
+     * the pdf w.r.t solid angle in light class.
      */
     virtual HitPoint Sample(const HitPoint& ref, real *pdf, const vec3& sample) const = 0;
 
