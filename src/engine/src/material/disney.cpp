@@ -66,13 +66,11 @@ public:
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
         vec3 wh = mat_func::SampleGTR2(m_p->m_alpha_x, m_p->m_alpha_y, samples);
-        wh = wo.z > 0 ? wh : -wh;
-
-        const vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
-        if (!IsReflection(wo, wi)) {
-            return black;
+        if (IsReflection(wo, wh)) {
+            Flip(wh);
         }
-        return wi;
+        vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
+        return IsReflection(wo, wi) ? wi : Flip(wi);
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override
@@ -132,8 +130,9 @@ public:
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
+        // ignore normal, always sample in the same hemisphere
         vec3 wi = CosineWeightedHemiSphere(samples);
-        return wo.z > 0 ? wi : -wi;
+        return IsReflection(wo, wi) > 0 ? wi : Flip(wi);
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override
@@ -181,12 +180,11 @@ public:
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
         vec3 wh = mat_func::SampleGTR1(m_p->m_clearcoat_roughness, samples);
-        wh = wo.z > 0 ? wh : -wh;
-        const vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
-        if (!IsReflection(wo, wi)) {
-            return black;
+        if (IsReflection(wo, wh)) {
+            Flip(wh);
         }
-        return wi;
+        vec3 wi = glm::normalize(2.0_r * glm::dot(wo, wh) * wh - wo);
+        return IsReflection(wo, wi) ? wi : Flip(wi);
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override
@@ -266,18 +264,13 @@ public:
 
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
-        const vec3 wh = mat_func::SampleGTR2(m_p->m_trans_alpha_x, m_p->m_trans_alpha_y, samples);
-        // wh is assumed to be in up hemisphere
-        if (wh.z <= 0) {
-            spdlog::error("Sampled transmission normal direction should be in up hemisphere.");
-            return black;
-        }
+        vec3 wh = mat_func::SampleGTR2(m_p->m_trans_alpha_x, m_p->m_trans_alpha_y, samples);
 
-        // eta_r for RefractDir should be incident IOR / transmitted IOR
+        // eta_r for RefractDir should be incident IOR (+n) / transmitted IOR (-n)
         const real eta_r = wo.z > 0 ? m_p->m_ior_r : m_p->m_ior;
 
-        // norm for RefractDir should be in same hemisphere
-        const vec3 norm = glm::dot(wo, wh) > 0 ? wh : -wh;
+        // normal for RefractDir should be in same hemisphere with wo
+        vec3 norm = IsReflection(wo, wh) > 0 ? wh : Flip(wh);
 
         // get transmitted direction
         const auto wt = mat_func::RefractDir(wo, norm, eta_r);
@@ -371,7 +364,7 @@ public:
     vec3 Sample(const vec3& wo, const vec2& samples) const override
     {
         vec3 wi = CosineWeightedHemiSphere(samples);
-        return wo.z * wi.z > 0 ? -wi : wi;
+        return IsReflection(wo, wi) ? Flip(wi) : wi;
     }
 
     real Pdf(const vec3 &wo, const vec3 &wi) const override
@@ -481,6 +474,8 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
         m_disney_lambert_transmission = MakeUP<DisneyLambertianTransmission>(this);
         m_disney_fake_ss = MakeUP<DisneyFakeSS>(this);
     }
+
+    m_opaque = !(m_thin || m_specTrans > 0.0_r);
 }
 
 vec3 DisneyBSDF::CalFuncLocal(const vec3 &wo, const vec3 &wi) const
@@ -524,22 +519,6 @@ BSDFSampleInfo DisneyBSDF::SampleBSDF(const vec3 &wo_w, const vec3 &samples) con
     real roulette = samples.z;
     vec3 wi = black;
 
-    if (wo.z < 0) {
-        if (m_thin) {
-            vec3 wo_inv = vec3(wo.x, wo.y, -wo.z);
-            vec3 wi_inv = RouletteSample(wo_inv, roulette, samples);
-            wi = vec3(wi_inv.x, wi_inv.y, -wi_inv.z);
-
-            real pdf = PdfLocal(wo_inv, wi_inv);
-            vec3 f = CalFuncLocal(wo_inv, wi_inv);
-            return {f, ShadingToWorld(wi), pdf, false};
-        } else {
-            // todo: might enter here when there's no thrasmission
-            wi = m_disney_specular_transmission->Sample(wo, samples);
-            return SampleInfoFromWoWi(wo, wi);
-        }
-    }
-
     wi = RouletteSample(wo, roulette, samples);
     return SampleInfoFromWoWi(wo, wi);
 }
@@ -577,10 +556,6 @@ BSDFSampleInfo DisneyBSDF::SampleInfoFromWoWi(const vec3 &wo, const vec3 &wi) co
 real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
 {
     real total_pdf = 0.0_r;
-
-    if (wo.z < 0) {
-        return m_disney_specular_transmission->Pdf(wo, wi);
-    }
 
     if (m_w_diffuse_refl > 0.0_r)
         total_pdf += m_w_diffuse_refl * m_disney_diffuse->Pdf(wo, wi);

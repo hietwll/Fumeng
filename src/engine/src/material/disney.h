@@ -37,8 +37,14 @@ private:
     real m_clearcoatGloss;
     real m_specTrans;
     real m_specTransRoughness;
-    real m_diffTrans;
-    real m_flatness;
+    real m_diffTrans; // only for thin material
+    real m_flatness; // only for thin material
+    // ratio of ior in the -normal side to ior in the +normal side
+    //                           /\ n
+    //                           |                     eta_air = 1.00029
+    //-------------------------------------------------------------
+    //                                                eta_glass = 1.5
+    // m_ior = eta_glass / eta_air
     real m_ior;
     bool m_thin;
 
@@ -66,6 +72,8 @@ private:
     real m_c_clearcoat;
     real m_c_specular_trans;
     real m_c_diff_trans;
+
+    bool m_opaque {true};
 
     // submodels
     UP<DisneySpecularReflection> m_disney_specular_reflection;
@@ -135,6 +143,11 @@ public:
     {
         return wo.z < 0 && wi.z < 0;
     };
+
+    vec3& Flip(vec3& w) const {
+        w.z = -w.z;
+        return w;
+    }
 };
 
 FM_ENGINE_END

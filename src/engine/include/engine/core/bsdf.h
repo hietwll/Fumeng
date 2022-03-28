@@ -86,7 +86,7 @@ public:
     {
         vec3 wo = WorldToShading(wo_w);
         vec3 wi = CosineWeightedHemiSphere(samples);
-        if (wo.z < 0.0_r) {
+        if (wo.z * wi.z < 0.0_r) {
             wi.z *= -1.0_r; // make sure they are in the same hemisphere
         }
 
@@ -101,8 +101,7 @@ public:
     vec3 WorldToShading(const vec3& vec) const
     {
         return glm::normalize(
-                vec3(glm::dot(vec, xs), glm::dot(vec, ys), glm::dot(vec, zs))
-                );
+                vec3(glm::dot(vec, xs), glm::dot(vec, ys), glm::dot(vec, zs)));
     };
 
     /*
@@ -112,9 +111,8 @@ public:
     {
         return glm::normalize(
                 vec3(xs.x * vec.x + ys.x * vec.y + zs.x * vec.z,
-                    xs.y * vec.x + ys.y * vec.y + zs.y * vec.z,
-                    xs.z * vec.x + ys.z * vec.y + zs.z * vec.z)
-                );
+                     xs.y * vec.x + ys.y * vec.y + zs.y * vec.z,
+                     xs.z * vec.x + ys.z * vec.y + zs.z * vec.z));
     };
 
     /*
