@@ -7,25 +7,6 @@
 
 FM_ENGINE_BEGIN
 
-/**
- * Piecewise Dielectric Fresnel Function in Burley 2015's Paper, Eq.(8)
- */
-class DisneyDielectricFresnel
-{
-private:
-    UP<DielectricFresnel> m_fresnel;
-
-public:
-    DisneyDielectricFresnel(real ior)
-    {
-        m_fresnel = MakeUP<DielectricFresnel>(1.0_r, ior);
-    }
-
-    vec3 CalFr(real cos_i) const
-    {
-        return m_fresnel->CalFr(cos_i);
-    }
-};
 
 class DisneySpecularReflection : public BaseBXDF
 {
@@ -49,8 +30,7 @@ public:
         // note wh is assumed to be normal direction in fresnel calculation
         const real cos_d = glm::dot(wi, wh.z > 0 ? wh : -wh);
 
-        DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
-        const vec3 f_dielectric = m_p->m_cspec0 * dielectric_fresnel.CalFr(cos_d);
+        const vec3 f_dielectric = m_p->m_cspec0 * m_p->m_dielectric_fresnel->CalFr(cos_d);
         const vec3 f_conduct = mat_func::SchlickFresnel(m_p->m_cspec0, std::abs(cos_d));
         const vec3 f = Lerp(m_p->m_specular * f_dielectric, f_conduct, m_p->m_metallic);
 
@@ -245,8 +225,7 @@ public:
         const real cos_d_o = glm::dot(wo, wh);
         const real cos_d_i = glm::dot(wi, wh);
 
-        DisneyDielectricFresnel dielectric_fresnel(m_p->m_ior);
-        const real f = dielectric_fresnel.CalFr(cos_d_o).x;
+        const real f = m_p->m_dielectric_fresnel->CalFr(cos_d_o).x;
 
         // microfacet normal distribution
         const real d = mat_func::GTR2Anisotropic(wh, m_alpha_x, m_alpha_y);
@@ -432,14 +411,17 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     m_trans_alpha_x = std::max(real(0.001), m_specTransRoughness * m_specTransRoughness / aspect);
     m_trans_alpha_y = std::max(real(0.001), m_specTransRoughness * m_specTransRoughness * aspect);
 
+    // approx fresnel
+    m_dielectric_fresnel = MakeUP<DielectricFresnel>(1.0_r, m_ior);
+    real fr_approx = m_dielectric_fresnel->CalFr(WorldToShading(hit_point.wo_r_w).z).x;
 
     // weight
     const real basecolor_lum = RGBToLuminance(m_basecolor);
     const real cspec0_lum = RGBToLuminance(m_cspec0);
     m_w_diffuse_refl = basecolor_lum * m_diffuse_weight * (m_thin ? (1.0_r - m_diffTrans) : 1.0_r);
-    m_w_specular_refl = cspec0_lum * 2.0_r;
-    m_w_clearcoat = m_clearcoat;
-    m_w_specular_trans = basecolor_lum * (1.0_r - m_metallic) * specTrans;
+    m_w_clearcoat = m_clearcoat * 0.25_r;
+    m_w_specular_refl = Lerp(cspec0_lum, RGBToLuminance(white), fr_approx);
+    m_w_specular_trans = basecolor_lum * (1.0_r - m_metallic) * specTrans * (1.0 - fr_approx);
     m_w_diffuse_trans = m_thin ? basecolor_lum * m_diffuse_weight * m_diffTrans : 0.0_r;
 
     const real w_sum_inv = 1.0_r / (m_w_diffuse_refl + m_w_specular_refl
@@ -452,10 +434,10 @@ DisneyBSDF::DisneyBSDF(const HitPoint &hit_point,
     m_w_diffuse_trans *= w_sum_inv;
 
     m_c_diffuse_refl = m_w_diffuse_refl;
-    m_c_specular_refl = m_w_specular_refl + m_c_diffuse_refl;
-    m_c_clearcoat = m_w_clearcoat + m_c_specular_refl;
-    m_c_specular_trans = m_w_specular_trans + m_c_clearcoat;
-    m_c_diff_trans = m_w_diffuse_trans + m_c_specular_trans;
+    m_c_clearcoat = m_w_clearcoat + m_c_diffuse_refl;
+    m_c_diff_trans = m_w_diffuse_trans + m_c_clearcoat;
+    m_c_specular_refl = m_w_specular_refl + m_c_diff_trans;
+    m_c_specular_trans = m_w_specular_trans + m_c_specular_refl;
 
     // submodels
     m_disney_specular_reflection = MakeUP<DisneySpecularReflection>(this);
@@ -527,18 +509,26 @@ vec3 DisneyBSDF::RouletteSample(const vec3 &wo, real roulette, const vec3& sampl
 {
     if (roulette <= m_c_diffuse_refl) {
         return m_disney_diffuse->Sample(wo, samples);
-    } else if (roulette <= m_c_specular_refl) {
-        return m_disney_specular_reflection->Sample(wo, samples);
     } else if (roulette <= m_c_clearcoat) {
         return m_disney_clearcoat->Sample(wo, samples);
-    } else if (roulette <= m_c_specular_trans){
-        return m_thin ? m_disney_rough_transmission->Sample(wo, samples) :
-                m_disney_specular_transmission->Sample(wo, samples);
     } else if (roulette <= m_c_diff_trans) {
         return m_disney_lambert_transmission->Sample(wo, samples);
     } else {
-        // fall back to diffuse at corner case for single precision
-        return m_disney_diffuse->Sample(wo, samples);
+        return SampleReflOrTrans(wo, samples);
+    }
+}
+
+vec3 DisneyBSDF::SampleReflOrTrans(const vec3 &wo, const vec3& samples) const
+{
+    real fr = m_dielectric_fresnel->CalFr(wo.z).x;
+    fr = 1.0_r - ((1.0_r - fr) * m_specTrans * (1.0_r - m_metallic));
+    if(samples.z <= fr) {
+        // specular reflection
+        return m_disney_specular_reflection->Sample(wo, samples);
+    } else {
+        // transmission
+        return m_thin ? m_disney_rough_transmission->Sample(wo, samples) :
+               m_disney_specular_transmission->Sample(wo, samples);
     }
 }
 
@@ -560,20 +550,32 @@ real DisneyBSDF::PdfLocal(const vec3 &wo, const vec3 &wi) const
     if (m_w_diffuse_refl > 0.0_r)
         total_pdf += m_w_diffuse_refl * m_disney_diffuse->Pdf(wo, wi);
 
-    if (m_w_specular_refl > 0.0_r)
-        total_pdf += m_w_specular_refl * m_disney_specular_reflection->Pdf(wo, wi);
-
     if (m_w_clearcoat > 0.0_r)
         total_pdf += m_w_clearcoat * m_disney_clearcoat->Pdf(wo, wi);
 
-    if (m_w_specular_trans > 0.0_r)
-        total_pdf += m_w_specular_trans * (m_thin ? m_disney_rough_transmission->Pdf(wo, wi) :
-                m_disney_specular_transmission->Pdf(wo, wi));
+    if (m_w_specular_trans + m_w_specular_refl> 0.0_r)
+        total_pdf += PdfReflOrTrans(wo, wi);
 
     if (m_w_diffuse_trans > 0.0_r)
         total_pdf += m_w_diffuse_trans * m_disney_lambert_transmission->Pdf(wo, wi);
 
     return total_pdf;
+}
+
+real DisneyBSDF::PdfReflOrTrans(const vec3 &wo, const vec3 &wi) const
+{
+    real fr = m_dielectric_fresnel->CalFr(wo.z).x;
+    fr = 1.0_r - ((1.0_r - fr) * m_specTrans * (1.0_r - m_metallic));
+
+    if (wo.z * wi.z > 0.0_r) {
+        // reflection
+        return (m_w_specular_trans + m_w_specular_refl) * fr * m_disney_specular_reflection->Pdf(wo, wi);
+    } else {
+        // transmission
+        return (m_w_specular_trans + m_w_specular_refl) * (1.0_r - fr) *
+               (m_thin ? m_disney_rough_transmission->Pdf(wo, wi) :
+                 m_disney_specular_transmission->Pdf(wo, wi));
+    }
 }
 
 vec3 DisneyBSDF::GetAlbedo() const

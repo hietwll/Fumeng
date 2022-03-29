@@ -12,6 +12,23 @@ class DisneyMicrofacetTransmission;
 class DisneyLambertianTransmission;
 class DisneyFakeSS;
 
+class DisneyDielectricFresnel
+{
+private:
+    UP<DielectricFresnel> m_fresnel;
+
+public:
+    DisneyDielectricFresnel(real ior)
+    {
+        m_fresnel = MakeUP<DielectricFresnel>(1.0_r, ior);
+    }
+
+    vec3 CalFr(real cos_i) const
+    {
+        return m_fresnel->CalFr(cos_i);
+    }
+};
+
 class DisneyBSDF : public BSDF
 {
 private:
@@ -75,6 +92,9 @@ private:
 
     bool m_opaque {true};
 
+    // dielectric fresnel
+    UP<DielectricFresnel> m_dielectric_fresnel;
+
     // submodels
     UP<DisneySpecularReflection> m_disney_specular_reflection;
     UP<DisneyDiffuse> m_disney_diffuse;
@@ -109,6 +129,8 @@ public:
     BSDFSampleInfo SampleBSDF(const vec3& wo_w, const vec3 &samples) const override;
     BSDFSampleInfo SampleInfoFromWoWi(const vec3& wo, const vec3& wi) const;
     vec3 RouletteSample(const vec3& wo, real roulette, const vec3& samples) const;
+    vec3 SampleReflOrTrans(const vec3 &wo, const vec3& samples) const;
+    real PdfReflOrTrans(const vec3 &wo, const vec3 &wi) const;
     vec3 GetAlbedo() const override;
 };
 
