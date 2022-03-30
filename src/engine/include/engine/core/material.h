@@ -21,7 +21,7 @@ class DisneyConfig : public Config {
 public:
     TextureDesc basecolor;
     TextureDesc metallic;
-    TextureDesc specular;
+    TextureDesc specular {0.5_r};
     TextureDesc specularTint;
     TextureDesc roughness;
     TextureDesc anisotropic;
@@ -33,7 +33,7 @@ public:
     TextureDesc specTransRoughness;
     TextureDesc diffTrans;
     TextureDesc flatness;
-    TextureDesc ior {1.5};
+    TextureDesc ior {1.5_r};
     bool thin = false;
 
     void Load(const nlohmann::json &j) override
