@@ -135,7 +135,11 @@ public:
             return;
         }
 
-        spdlog::info("Building bvh, total primitive size is {}.", m_objects.size());
+        size_t prim_count = 0;
+        for (const auto& obj : m_objects) {
+            prim_count += obj->PrimCount();
+        }
+        spdlog::info("Building bvh using built-in implementation: {} objects, {} primitives.", m_objects.size(), prim_count);
 
         m_objInfos.resize(m_objects.size());
         m_objList.reserve(m_objects.size());

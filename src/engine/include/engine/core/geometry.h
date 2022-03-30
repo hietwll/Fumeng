@@ -128,6 +128,11 @@ public:
      * Get bounding box in world space
      */
      virtual BBox WorldBound() const = 0;
+
+     /*
+      * Return the primitive count.
+      */
+     virtual size_t PrimCount() const { return 1; };
 };
 
 FM_ENGINE_END

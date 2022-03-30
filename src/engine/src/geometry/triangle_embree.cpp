@@ -43,6 +43,7 @@ public:
     real Pdf(const vec3& shd_pos, const vec3& sample) const override;
     real Area() const override;
     BBox WorldBound() const override;
+    size_t PrimCount() const override;
 };
 
 TriangleEmbree::TriangleEmbree(const TriangleMeshConfig& config)
@@ -276,6 +277,11 @@ real TriangleEmbree::Area() const
 BBox TriangleEmbree::WorldBound() const
 {
     return m_box_world;
+}
+
+size_t TriangleEmbree::PrimCount() const
+{
+    return m_triangles.size();
 }
 
 SP<Geometry> CreateTriangleEmbree(const TriangleMeshConfig& config)

@@ -8,6 +8,11 @@ class SimpleAggregate : public Aggregate
 public:
     SimpleAggregate(const std::vector<SP<const RenderObject>>& objects) : Aggregate(objects)
     {
+        size_t prim_count = 0;
+        for (const auto& obj : m_objects) {
+            prim_count += obj->PrimCount();
+        }
+        spdlog::info("Using brute-force aggregate: {} objects, {} primitives.", m_objects.size(), prim_count);
     }
 
     bool IsIntersect(const Ray &r) const override

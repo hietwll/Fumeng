@@ -70,6 +70,11 @@ public:
     {
         return m_geometry->WorldBound();
     }
+
+    size_t PrimCount() const
+    {
+        return m_geometry->PrimCount();
+    }
 };
 
 FM_ENGINE_END
