@@ -17,6 +17,22 @@ public:
     }
 };
 
+class SpecularTransmissionConfig : public Config {
+public:
+    vec3 reflect_color {white};
+    vec3 refract_color {white};
+    real eta_i;
+    real eta_t;
+
+    void Load(const nlohmann::json &j) override
+    {
+        FM_LOAD_IMPL(j, reflect_color);
+        FM_LOAD_IMPL(j, refract_color);
+        FM_LOAD_IMPL(j, eta_i);
+        FM_LOAD_IMPL(j, eta_t);
+    }
+};
+
 class DisneyConfig : public Config {
 public:
     TextureDesc basecolor;

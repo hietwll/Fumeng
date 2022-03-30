@@ -78,8 +78,11 @@ private:
     real m_eta_i; // incident media
     real m_eta_t; // transmitted (reflected) media
 public:
-    SpecularTransmission(const vec3& reflect_color, const vec3& refract_color, const real eta_i, const real eta_t)
-    : m_reflect_color(reflect_color), m_refract_color(refract_color), m_eta_i(eta_i), m_eta_t(eta_t)
+    SpecularTransmission(const SpecularTransmissionConfig& config) :
+    m_reflect_color(config.reflect_color),
+    m_refract_color(config.refract_color),
+    m_eta_i(config.eta_i),
+    m_eta_t(config.eta_t)
     {
     };
 
@@ -90,9 +93,9 @@ public:
     };
 };
 
-SP<Material> CreateSpecularTransmission(const vec3& reflect_color, const vec3& refract_color, const real eta_i, const real eta_t)
+SP<Material> CreateSpecularTransmission(const SpecularTransmissionConfig& config)
 {
-    return MakeSP<SpecularTransmission>(reflect_color, refract_color, eta_i, eta_t);
+    return MakeSP<SpecularTransmission>(config);
 }
 
 FM_ENGINE_END

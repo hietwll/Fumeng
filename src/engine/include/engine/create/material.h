@@ -10,7 +10,7 @@ SP<Material> CreateLambertDiffuse(const LambertDiffuseConfig& config);
 
 SP<Material> CreateSpecularReflection(const vec3& color, const vec3& eta_i, const vec3& eta_t, const vec3& k);
 
-SP<Material> CreateSpecularTransmission(const vec3& reflect_color_, const vec3& refract_color_, const real eta_i, const real eta_t);
+SP<Material> CreateSpecularTransmission(const SpecularTransmissionConfig& config);
 
 SP<Material> CreateDisneyMaterial(const DisneyConfig& config);
 

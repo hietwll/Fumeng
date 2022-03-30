@@ -189,6 +189,10 @@ private:
             DisneyConfig config;
             config.Load(j);
             material = CreateDisneyMaterial(config);
+        } else if (material_type == "specular_transmission") {
+            SpecularTransmissionConfig config;
+            config.Load(j);
+            material = CreateSpecularTransmission(config);
         } else {
             spdlog::warn("Material type not supported: {}.", material_type);
         }
