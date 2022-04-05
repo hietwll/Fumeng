@@ -4,3 +4,6 @@
 [submodule "thirdparty/spdlog"]
 	path = thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "scenes"]
+	path = scenes
+	url = https://github.com/hietwll/FumengScene.git
